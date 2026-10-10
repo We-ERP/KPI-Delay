@@ -21,13 +21,13 @@
   header h1{margin:0;font-size:22px;letter-spacing:.3px}
   header .sub{font-size:12px;opacity:.8}
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  button{border:none;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:14px;transition:transform .15s,box-shadow .15s,background .15s}
+  button{border:none;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:14px;transition:transform .15s,box-shadow .15s}
   button:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.18)}
   button:active{transform:translateY(0)}
   .b-red{background:var(--r2);color:var(--w)}
   .b-white{background:var(--w);color:var(--g1)}
   .b-green{background:var(--g3);color:var(--w)}
-  .tog{background:var(--w);color:var(--g1);padding:0;width:20px;height:20px;border-radius:5px;font-size:14px;line-height:18px;box-shadow:none;margin-left:6px}
+  .tog{background:var(--w);color:var(--g1);padding:0;width:20px;height:20px;border-radius:5px;font-size:14px;line-height:18px;box-shadow:none;margin-left:8px}
   .tog:hover{transform:none;box-shadow:none}
   .search{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:var(--w);border-radius:10px;padding:9px 14px;font-size:14px;width:220px;outline:none}
   .search::placeholder{color:rgba(255,255,255,.75)}
@@ -40,6 +40,18 @@
   .drop label{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--g1);margin-bottom:6px}
   .drop label span{font-weight:400;color:var(--muted);font-size:11px}
   .drop input{width:100%;font-size:12px}
+  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--muted)}
+  .log{min-height:18px;font-weight:600}
+  .log.err{color:var(--r1)}
+  details.diag{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+  details.diag summary{cursor:pointer;font-weight:700;color:var(--g1);font-size:13px}
+  .dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:10px}
+  .dg div.item{border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;background:#fbfdfc}
+  .dg div.item.bad{border-color:var(--r2);background:var(--rl)}
+  .dg b{color:var(--g1)}
+  .dg .bad b{color:var(--r1)}
+  .dg code{background:var(--gl);padding:1px 5px;border-radius:5px}
+  .dg .warn{color:var(--r1);font-weight:600}
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:22px}
   .card{background:var(--w);border-radius:16px;padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
   .card::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--g2)}
@@ -52,40 +64,33 @@
   .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g3),var(--g2));border-radius:20px;transition:width .6s}
   .card.red .bar i{background:linear-gradient(90deg,var(--r2),var(--r1))}
   .card .sub{font-size:12px;color:var(--muted);margin-top:8px}
-  .two{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:22px}
-  @media (max-width:900px){.two{grid-template-columns:1fr}}
-  .tl-row{display:grid;grid-template-columns:200px 1fr 60px;gap:10px;align-items:center;margin:9px 0;font-size:13px}
+  .two{display:grid;grid-template-columns:1fr;gap:18px;margin-bottom:22px}
+  .tl-row{display:grid;grid-template-columns:150px 1fr 56px;gap:10px;align-items:center;margin:9px 0;font-size:13px}
   .tl-row b{color:var(--g1);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tl-row em{font-style:normal;text-align:right;font-weight:700}
-  .tbl-wrap{background:var(--w);border-radius:16px;box-shadow:var(--shadow);overflow:auto;max-height:560px}
+  .tbl-wrap{overflow:auto;max-height:600px;border-radius:12px;border:1px solid var(--line)}
   table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
   thead th{position:sticky;background:var(--g2);color:var(--w);padding:9px 10px;text-align:center;white-space:nowrap;font-weight:700}
   thead tr:first-child th{top:0;z-index:3}
-  thead tr:nth-child(2) th{top:38px;z-index:2;background:var(--g1);font-size:12px}
-  tbody td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center}
-  tbody td:first-child,tbody td:nth-child(2){text-align:left}
+  thead tr:nth-child(2) th{top:var(--h1,38px);z-index:2;background:var(--g1);font-size:12px}
+  tbody td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center}
+  tbody td.l{text-align:left}
   tbody tr:nth-child(even){background:#f8fbf9}
   tbody tr:hover{background:var(--gl)}
   tbody tr.bad td{background:var(--rl)}
+  tbody tr.off td{color:var(--muted);background:#f1f1f1}
+  .g-agent{background:var(--g1)!important}
   .g-sched{background:var(--g2)!important}
   .g-reach{background:#1f8a7a!important}
   .g-qual{background:#2d6cdf!important}
   .g-abs{background:#8e6c2e!important}
   .g-audit{background:#6a4fb3!important}
-  .g-fin{background:var(--g1)!important}
-  .g-complaint{background:var(--y)!important;color:var(--ink)!important}
-  .g-penalty{background:var(--r2)!important}
-  .g-bonus{background:var(--g3)!important}
-  .inp{width:74px;padding:5px 6px;border:1px solid var(--line);border-radius:7px;text-align:center;font-size:13px;outline:none}
+  .g-fin{background:var(--r1)!important}
+  .inp{width:70px;padding:5px 6px;border:1px solid var(--line);border-radius:7px;text-align:center;font-size:13px;outline:none}
   .inp:focus{border-color:var(--g3);box-shadow:0 0 0 3px var(--gl)}
   .inp.y{background:var(--yl)}
   .inp.r{background:var(--rl)}
   .inp.g{background:var(--gl)}
-  .pill{display:inline-block;padding:2px 10px;border-radius:20px;font-weight:700;font-size:12px}
-  .pill.ok{background:var(--gl);color:var(--g1)}
-  .pill.no{background:var(--rl);color:var(--r1)}
-  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--muted)}
-  .log{min-height:18px}
 </style>
 </head>
 <body>
@@ -116,13 +121,17 @@
       <div class="drop"><label>Q <span>quality</span></label><input type="file" id="f_q" accept=".xlsx,.xlsm,.xls,.csv"></div>
       <div class="drop"><label>Audit <span>audit scores</span></label><input type="file" id="f_audit" accept=".xlsx,.xlsm,.xls,.csv"></div>
       <div class="drop"><label>IR OTC <span>reachability</span></label><input type="file" id="f_ir" accept=".xlsx,.xlsm,.xls,.csv"></div>
-      <div class="drop"><label>Str <span>structure (ID, name, TL)</span></label><input type="file" id="f_str" accept=".xlsx,.xlsm,.xls,.csv"></div>
+      <div class="drop"><label>Str <span>structure</span></label><input type="file" id="f_str" accept=".xlsx,.xlsm,.xls,.csv"></div>
     </div>
     <div class="foot"><span class="log" id="log">Upload files, then press Run.</span><span id="count"></span></div>
+    <details class="diag" id="diagBox" style="display:none" open>
+      <summary>File check (how each file was read)</summary>
+      <div class="dg" id="diag"></div>
+    </details>
   </div>
 
   <div class="cards">
-    <div class="card" id="c_agents"><div class="lbl">Agents</div><div class="val" id="v_agents">0</div><div class="bar"><i id="b_agents" style="width:0"></i></div><div class="sub" id="s_agents">—</div></div>
+    <div class="card" id="c_agents"><div class="lbl">Active agents</div><div class="val" id="v_agents">0</div><div class="bar"><i id="b_agents" style="width:0"></i></div><div class="sub" id="s_agents">—</div></div>
     <div class="card" id="c_pure"><div class="lbl">Pure hours</div><div class="val" id="v_pure">0</div><div class="bar"><i id="b_pure" style="width:0"></i></div><div class="sub" id="s_pure">—</div></div>
     <div class="card red" id="c_abs"><div class="lbl">Absence days</div><div class="val" id="v_abs">0</div><div class="bar"><i id="b_abs" style="width:0"></i></div><div class="sub" id="s_abs">Absent + Sick + Emergency</div></div>
     <div class="card" id="c_qual"><div class="lbl">Avg quality</div><div class="val" id="v_qual">0%</div><div class="bar"><i id="b_qual" style="width:0"></i></div><div class="sub" id="s_qual">—</div></div>
@@ -133,9 +142,7 @@
   <div class="two">
     <div class="panel">
       <h2>Final KPI</h2>
-      <div class="tbl-wrap">
-        <table id="tbl"><thead></thead><tbody></tbody></table>
-      </div>
+      <div class="tbl-wrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
     </div>
     <div class="panel">
       <h2>Team leaders</h2>
@@ -146,345 +153,562 @@
 </main>
 
 <script>
-/* ===================== CONFIG ===================== */
+/* ============================================================
+   CONFIG
+   ============================================================ */
+// Staffed codes (compared ignoring case/spaces/punctuation)
 const CODES = {
-  pure:    ["Phone", "Covering E.C", "Covering HSH instability"],
-  absence: ["Absent", "Sick Leave", "Emergency"]
-};
-const COL = {
-  ir:    {id:"Login ID", reached:"Reached", noCall:"No call", points:"Points total", floor:"Floor"},
-  audit: {user:"UN", score:"Score"},
-  q:     {agentId:"Agent ID", count:"Count of monitored sheets", ctc:"Sum of clear CTC agent", ctb:"Sum of clear CTB agent", nc:"Sum of NC"}
+  pure:  ["Phone", "Covering E.C", "Covering HSH instability"],
+  absent:["Absent"],
+  sick:  ["Sick Leave"],
+  emerg: ["Emergency"]
 };
 
-/* column groups: first column of each group is the summary shown when collapsed */
-const pct = v => (v*100).toFixed(1)+"%";
-const w2  = v => v.toFixed(2);
-const GROUPS = [
-  {id:"sched", title:"Schedule", cols:[
-    {k:"pure",  label:"Pure (h)", f:v=>v.toFixed(2)},
-    {k:"comp",  label:"Comp (h)", f:v=>v.toFixed(2)},
-    {k:"pph",   label:"Pts / h",  f:v=>v.toFixed(1)},
-    {k:"prodW", label:"Prod W",   f:w2}]},
-  {id:"reach", title:"Reachability", cols:[
-    {k:"reach",  label:"Reach %", f:pct},
-    {k:"reachW", label:"Reach W", f:w2}]},
-  {id:"qual", title:"Quality", cols:[
-    {k:"monitored", label:"Sheets",    f:v=>v},
-    {k:"qualAcc",   label:"Quality %", f:pct},
-    {k:"qualW",     label:"Quality W", f:w2}]},
-  {id:"abs", title:"Absence", cols:[
-    {k:"absDays", label:"Days",      f:v=>v},
-    {k:"absW",    label:"Absent W",  f:w2}]},
-  {id:"audit", title:"Audit", cols:[
-    {k:"audit",  label:"Score",   f:v=>v===null?"Pending":pct(v)},
-    {k:"auditW", label:"Audit W", f:w2}]},
-  {id:"fin", title:"Final", cols:[
-    {k:"total",     label:"Total KPI", f:pct},
-    {k:"complaint", label:"Complaint", input:true, cls:"y", g:"complaint"},
-    {k:"penalty",   label:"Penalty %", input:true, cls:"r", g:"penalty"},
-    {k:"bonus",     label:"Bonus %",   input:true, cls:"g", g:"bonus"},
-    {k:"final",     label:"Final KPI", f:pct}]}
-];
+// Column headers each file is searched for (first alias that matches wins).
+// req = columns that must be found for the table to count as recognised.
+const SPEC = {
+  staffed:{label:"Staffed", req:["id","code","duration"],
+    cols:{id:["id","teleoptiid"], code:["code"], duration:["duration"]}},
+  comp:   {label:"Comp", req:["id","time"],
+    cols:{id:["id","teleoptiid"], time:["codetime","time","duration"]}},
+  q:      {label:"Q", req:["login","count","ctc","ctb","nc"],
+    cols:{login:["extension","loginid"], count:["countofmonitoredsheets"],
+          ctc:["sumofclearctcagent"], ctb:["sumofclearctbagent"], nc:["sumofnc"]}},
+  audit:  {label:"Audit", req:["un","score"],
+    cols:{un:["un","username"], score:["score","auditscore","audit","total","result","finalscore","percentage"]}},
+  ir:     {label:"IR OTC", req:["by","points"],
+    cols:{by:["addedby"], points:["pointstotal"], floor:["validationcoor"],
+          status:["trial"], action:["caseaction"]}},
+  str:    {label:"Str", req:["id","name","tl"],
+    cols:{id:["teleoptiid","id"], name:["name","agentname"], tl:["tl","teamleader"],
+          un:["un"], login:["loginid"], perm:["permid"]}}
+};
 
-/* ===================== STATE ===================== */
-const DATA = {};
-const ADJ  = {};                       // id -> {complaint, penalty, bonus}
-const RESULT = {agents:[]};
-const STATE  = {collapsed:{}, search:""};
+/* ============================================================
+   STATE + HELPERS
+   ============================================================ */
+const DATA = {};                 // key -> [{name, aoa}]
+const DIAG = {};                 // key -> diagnostics
+const ADJ  = {};                 // agent id -> {complaint, penalty, bonus}
+const RESULT = {agents:[], warns:[]};
+const STATE  = {collapsed:{sched:true, reach:true, qual:true, abs:true, audit:true}, search:""};
 
-const adjOf = id => (ADJ[id] ??= {complaint:0, penalty:0, bonus:0});
-
-/* ===================== HELPERS ===================== */
-const log = msg => document.getElementById("log").textContent = msg;
+const $ = id => document.getElementById(id);
 const clean = v => (v === undefined || v === null) ? "" : String(v).trim();
+const norm  = s => clean(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+const idKey = v => typeof v === "number" ? (Number.isFinite(v) ? String(v) : "") : clean(v).replace(/\.0+$/, "");
+const num   = v => {
+  if (typeof v === "number") return v;
+  const s = clean(v).replace(/,/g, "");
+  if (!s) return NaN;
+  return s.endsWith("%") ? parseFloat(s)/100 : parseFloat(s);
+};
+const adjOf = id => (ADJ[id] ??= {complaint:0, penalty:0, bonus:0});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-function parseDuration(v){
+function log(msg, err){ const el = $("log"); el.textContent = msg; el.classList.toggle("err", !!err); }
+
+function parseDur(v){
   if (v === null || v === undefined || v === "") return 0;
-  if (typeof v === "number") return v * 24;
-  const p = String(v).trim().split(":").map(Number);
-  if (p.some(isNaN)) return 0;
+  if (typeof v === "number") return v * 24;                // Excel time fraction -> hours
+  const p = clean(v).split(":").map(Number);
+  if (!p.length || p.some(isNaN)) return 0;
   return (p[0]||0) + (p[1]||0)/60 + (p[2]||0)/3600;
 }
 
-function readFile(input){
-  return new Promise((res, rej)=>{
-    const f = input.files[0];
-    if (!f) return res(null);
+function readFile(file){
+  return new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = e => {
-      const wb = XLSX.read(e.target.result, {type:"array"});
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      res(XLSX.utils.sheet_to_json(ws, {defval:"", raw:true}));
+      try{
+        const wb = XLSX.read(e.target.result, {type:"array"});
+        res(wb.SheetNames.map(n => ({
+          name:n,
+          aoa:XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, defval:"", raw:true, blankrows:false})
+        })));
+      }catch(err){ rej(err); }
     };
-    r.onerror = rej;
-    r.readAsArrayBuffer(f);
+    r.onerror = () => rej(r.error);
+    r.readAsArrayBuffer(file);
   });
 }
 
-async function loadAll(){
-  const map = {staffed:"f_staffed", comp:"f_comp", q:"f_q", audit:"f_audit", ir:"f_ir", str:"f_str"};
-  for (const k in map) DATA[k] = await readFile(document.getElementById(map[k]));
+/* Find the header row (any sheet, first 80 rows) that matches the spec best. */
+function findTable(sheets, spec){
+  let best = null;
+  for (const sh of sheets){
+    const lim = Math.min(sh.aoa.length, 80);
+    for (let i = 0; i < lim; i++){
+      const hdr = sh.aoa[i].map(norm);
+      const map = {};
+      for (const key in spec.cols){
+        for (const al of spec.cols[key]){
+          const ix = hdr.indexOf(al);
+          if (ix >= 0){ map[key] = ix; break; }
+        }
+      }
+      const hits = spec.req.filter(k => k in map).length;
+      const total = Object.keys(map).length;
+      if (!best || hits > best.hits || (hits === best.hits && total > best.total)){
+        best = {sheet:sh, headerRow:i, map, hits, total};
+      }
+    }
+  }
+  if (!best) return null;
+  best.complete = best.hits === spec.req.length;
+  best.rows = best.sheet.aoa.slice(best.headerRow + 1);
+  best.headers = best.sheet.aoa[best.headerRow];
+  return best;
 }
 
-/* ===================== CALCULATIONS ===================== */
-function calcAll(){
-  const staffed = DATA.staffed || [];
-  const comp    = DATA.comp    || [];
-  const q       = DATA.q       || [];
-  const audit   = DATA.audit   || [];
-  const ir      = DATA.ir      || [];
+/* Fallback for the raw WFM report (the one the old VBA macro cleaned):
+   an ID row ("156958 Name"), a date row, then detail rows (code text + duration). */
+function parseRawStaffed(sheets){
+  let best = {rows:[], sheet:""};
+  for (const sh of sheets){
+    const rows = []; let cur = "";
+    for (const r of sh.aoa){
+      const m = clean(r[1]).match(/^(\d{4,7})\b/);
+      if (m){ cur = m[1]; continue; }
+      const c = r[2];
+      if (typeof c === "number") continue;                      // date row
+      const code = clean(c);
+      if (!code || !cur) continue;
+      let dur = 0;
+      for (let k = 3; k < r.length; k++){
+        const v = r[k];
+        if ((typeof v === "number" && v >= 0 && v <= 3) || /^\d+:\d{2}(:\d{2})?$/.test(clean(v))){ dur = parseDur(v); break; }
+      }
+      rows.push({id:cur, code, dur});
+    }
+    if (rows.length > best.rows.length) best = {rows, sheet:sh.name};
+  }
+  return best;
+}
 
-  const agents = {};
-  const get = id => (agents[id] ??= {id, pure:0, absent:0, sick:0, emerg:0, comp:0, name:"", tl:"",
-                                      reached:0, trials:0, points:0, ctc:0, ctb:0, nc:0, monitored:0});
+/* ============================================================
+   LOAD
+   ============================================================ */
+const FILE_IDS = {staffed:"f_staffed", comp:"f_comp", q:"f_q", audit:"f_audit", ir:"f_ir", str:"f_str"};
 
-  for (const r of staffed){
-    const id = clean(r["ID"]);
-    if (!id) continue;
+async function loadAll(){
+  for (const k in FILE_IDS){
+    const f = $(FILE_IDS[k]).files[0];
+    DATA[k] = f ? await readFile(f) : null;
+    DIAG[k] = {label:SPEC[k].label, file:f ? f.name : null};
+  }
+}
+
+/* ============================================================
+   CALCULATION  (mirrors the Excel formulas)
+   ============================================================ */
+function compute(){
+  const W = [];
+  const agents = new Map();
+  const mk = id => ({id, name:"", tl:"", un:"", login:"", staffed:false,
+                     pure:0, absent:0, sick:0, emerg:0, comp:0,
+                     points:0, reached:0, trials:0,
+                     monitored:0, ctc:0, ctb:0, nc:0});
+  const get = id => { let a = agents.get(id); if (!a){ a = mk(id); agents.set(id, a); } return a; };
+
+  /* ---- Str: agent universe, name, TL, UN, Login ID ---- */
+  if (DATA.str){
+    let t = findTable(DATA.str, SPEC.str);
+    const d = DIAG.str;
+    let rows, map;
+    if (t && t.complete){
+      rows = t.rows; map = t.map;
+      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:rows.length});
+    } else {
+      // positional fallback: A = ID, C = Name, E = TL (same as the old VLOOKUP columns)
+      const sh = DATA.str[0];
+      rows = sh.aoa.slice(1); map = {id:0, name:2, tl:4};
+      Object.assign(d, {ok:false, positional:true, sheet:sh.name, headerRow:1, map, headers:sh.aoa[0], rows:rows.length,
+                        missing:t ? SPEC.str.req.filter(k => !(k in t.map)) : SPEC.str.req});
+    }
+    for (const r of rows){
+      const id = idKey(r[map.id]);
+      if (!id || norm(id) === "id" || norm(id) === "teleoptiid") continue;
+      const a = get(id);
+      a.name  = clean(r[map.name]);
+      a.tl    = clean(r[map.tl]);
+      if (map.un    !== undefined) a.un    = clean(r[map.un]);
+      if (map.login !== undefined) a.login = idKey(r[map.login]);
+    }
+    if (map.un === undefined)    W.push("Str has no UN column: IR and Audit cannot be matched to agents.");
+    if (map.login === undefined) W.push("Str has no Login ID column: Quality is matched by agent ID instead.");
+  } else {
+    W.push("Str not uploaded: names/TL come from Staffed only, and IR / Audit cannot be matched (no UN).");
+  }
+
+  /* ---- Staffed: pure time + absence days ---- */
+  const pureSet = CODES.pure.map(norm), absSet = CODES.absent.map(norm),
+        sickSet = CODES.sick.map(norm), emSet = CODES.emerg.map(norm);
+  const addStaff = (id, code, hours, nameFallback, tlFallback) => {
     const a = get(id);
-    a.name = a.name || r["Agent Name"];
-    a.tl   = a.tl   || r["TL"];
-    const code = String(r["Code"]).trim();
-    const hrs  = parseDuration(r["Duration"]);
-    if (CODES.pure.includes(code)) a.pure   += hrs;
-    if (code === "Absent")         a.absent += 1;
-    if (code === "Sick Leave")     a.sick   += 1;
-    if (code === "Emergency")      a.emerg  += 1;
+    a.staffed = true;
+    if (!a.name && nameFallback) a.name = nameFallback;
+    if (!a.tl && tlFallback) a.tl = tlFallback;
+    const c = norm(code);
+    if (pureSet.includes(c)) a.pure += hours;
+    if (absSet.includes(c))  a.absent++;
+    if (sickSet.includes(c)) a.sick++;
+    if (emSet.includes(c))   a.emerg++;
+  };
+  if (DATA.staffed){
+    const d = DIAG.staffed;
+    const t = findTable(DATA.staffed, SPEC.staffed);
+    if (t && t.complete){
+      const nameIx = t.headers.map(norm).findIndex(h => h === "agentname");
+      const tlIx   = t.headers.map(norm).findIndex(h => h === "tl");
+      let n = 0;
+      for (const r of t.rows){
+        const id = idKey(r[t.map.id]);
+        if (!id || norm(id) === "id") continue;
+        addStaff(id, r[t.map.code], parseDur(r[t.map.duration]),
+                 nameIx >= 0 ? clean(r[nameIx]) : "", tlIx >= 0 ? clean(r[tlIx]) : "");
+        n++;
+      }
+      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n});
+    } else {
+      const raw = parseRawStaffed(DATA.staffed);
+      for (const r of raw.rows) addStaff(r.id, r.code, r.dur, "", "");
+      Object.assign(d, {ok:raw.rows.length > 0, raw:true, sheet:raw.sheet, rows:raw.rows.length,
+                        missing:t ? SPEC.staffed.req.filter(k => !(k in t.map)) : SPEC.staffed.req});
+      if (raw.rows.length) W.push("Staffed was read as the RAW report (layout guessed). Check Pure hours against Excel for one agent.");
+      else W.push("Staffed: could not find ID / Code / Duration columns and the raw layout did not match either.");
+    }
+  } else W.push("Staffed not uploaded: nobody will count as Active.");
+
+  /* ---- Comp: every comp minute is deducted from pure time ---- */
+  if (DATA.comp){
+    const t = findTable(DATA.comp, SPEC.comp), d = DIAG.comp;
+    if (t && t.complete){
+      let n = 0;
+      for (const r of t.rows){
+        const id = idKey(r[t.map.id]);
+        if (!id || norm(id) === "id") continue;
+        if (agents.has(id)){ agents.get(id).comp += parseDur(r[t.map.time]); }
+        n++;
+      }
+      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n});
+    } else {
+      Object.assign(d, {ok:false, missing:t ? SPEC.comp.req.filter(k => !(k in t.map)) : SPEC.comp.req,
+                        sheet:t && t.sheet.name, headers:t && t.headers});
+      W.push("Comp: columns not recognised (need ID and Code Time).");
+    }
   }
 
-  // Str: column A = ID, C = Name, E = TL
-  for (const r of (DATA.str || [])){
-    const v = Object.values(r);
-    const id = String(v[0] ?? "").trim();
-    if (!id || !agents[id]) continue;
-    agents[id].name = v[2] || agents[id].name;
-    agents[id].tl   = v[4] || agents[id].tl;
+  /* ---- IR: points + reachability, matched by UN (added_by) ---- */
+  const irMap = new Map();
+  if (DATA.ir){
+    const t = findTable(DATA.ir, SPEC.ir), d = DIAG.ir;
+    if (t && t.complete){
+      const stIx = t.map.status !== undefined ? t.map.status : t.map.action;
+      let n = 0;
+      for (const r of t.rows){
+        const un = clean(r[t.map.by]).toLowerCase();
+        if (!un) continue;
+        let o = irMap.get(un);
+        if (!o){ o = {points:0, reached:0, rows:0, noCall:0}; irMap.set(un, o); }
+        const st = norm(r[stIx]);
+        o.rows++;
+        if (st === "reached") o.reached++;
+        if (st === "nocall")  o.noCall++;
+        const isFloor = t.map.floor === undefined ? true : norm(r[t.map.floor]) === "floor";
+        if (isFloor) o.points += num(r[t.map.points]) || 0;
+        n++;
+      }
+      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n});
+      if (t.map.floor === undefined) W.push("IR has no 'Validation Coor' column: all rows counted as Floor.");
+    } else {
+      Object.assign(d, {ok:false, missing:t ? SPEC.ir.req.filter(k => !(k in t.map)) : SPEC.ir.req,
+                        sheet:t && t.sheet.name, headers:t && t.headers});
+      W.push("IR: columns not recognised (need added_by and Points total).");
+    }
   }
 
-  for (const r of comp){
-    const id = clean(r["ID"]);
-    if (!id) continue;
-    get(id).comp += parseDuration(r["Code Time"]);
+  /* ---- Q: matched by Extension = Login ID ---- */
+  if (DATA.q){
+    const t = findTable(DATA.q, SPEC.q), d = DIAG.q;
+    if (t && t.complete){
+      const byLogin = new Map(), byId = new Map();
+      for (const a of agents.values()){ if (a.login) byLogin.set(a.login, a); byId.set(a.id, a); }
+      let n = 0, hit = 0;
+      for (const r of t.rows){
+        const ext = idKey(r[t.map.login]);
+        if (!ext || isNaN(num(r[t.map.count]))) continue;       // skips repeated header rows
+        n++;
+        const a = byLogin.get(ext) || byId.get(ext);
+        if (!a) continue;
+        hit++;
+        a.monitored += num(r[t.map.count]) || 0;
+        a.ctc += num(r[t.map.ctc]) || 0;
+        a.ctb += num(r[t.map.ctb]) || 0;
+        a.nc  += num(r[t.map.nc])  || 0;
+      }
+      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n, matched:hit});
+    } else {
+      Object.assign(d, {ok:false, missing:t ? SPEC.q.req.filter(k => !(k in t.map)) : SPEC.q.req,
+                        sheet:t && t.sheet.name, headers:t && t.headers});
+      W.push("Q: columns not recognised.");
+    }
   }
 
-  for (const r of q){
-    const id = String(r[COL.q.agentId] || "").trim();
-    if (!id || !agents[id]) continue;
-    const a = agents[id];
-    a.monitored += Number(r[COL.q.count]) || 0;
-    a.ctc += Number(r[COL.q.ctc]) || 0;
-    a.ctb += Number(r[COL.q.ctb]) || 0;
-    a.nc  += Number(r[COL.q.nc])  || 0;
+  /* ---- Audit: UN -> score ---- */
+  const auditMap = new Map();
+  if (DATA.audit){
+    const t = findTable(DATA.audit, SPEC.audit), d = DIAG.audit;
+    let rows, map, ok = true;
+    if (t && t.complete){ rows = t.rows; map = t.map; }
+    else { const sh = DATA.audit[0]; rows = sh.aoa.slice(1); map = {un:0, score:1}; ok = false; }   // Audit!A:B
+    let n = 0;
+    for (const r of rows){
+      const un = clean(r[map.un]).toLowerCase();
+      let s = num(r[map.score]);
+      if (!un || isNaN(s)) continue;
+      if (s > 1) s = s / 100;
+      auditMap.set(un, s); n++;
+    }
+    Object.assign(d, {ok, positional:!ok, sheet:t ? t.sheet.name : DATA.audit[0].name, headerRow:t ? t.headerRow+1 : 1,
+                      map, headers:t ? t.headers : DATA.audit[0].aoa[0], rows:n,
+                      missing:ok ? [] : (t ? SPEC.audit.req.filter(k => !(k in t.map)) : SPEC.audit.req)});
   }
 
-  const auditByUN = {};
-  for (const r of audit) auditByUN[String(r[COL.audit.user]).trim()] = Number(r[COL.audit.score]) || null;
-
-  for (const r of ir){
-    const id = String(r[COL.ir.id] || "").trim();
-    if (!id || !agents[id]) continue;
-    const a = agents[id];
-    const st = String(r[COL.ir.reached] || "").trim();
-    if (st === "Reached") a.reached++;
-    if (st !== COL.ir.noCall) a.trials++;
-    if (String(r[COL.ir.floor]).trim() === "Floor") a.points += Number(r[COL.ir.points]) || 0;
-  }
-
+  /* ---- score every agent ---- */
   const out = [];
-  for (const id in agents){
-    const a = agents[id];
-    const hours = Math.max(0, a.pure - a.comp);          // all comp deducted from pure
-    const pph   = hours > 0 ? a.points / hours : 0;
-    const prodW = pph >= 60 ? 0.3 : pph >= 54 ? 0.2 : pph >= 48 ? 0.1 : 0;
+  for (const a of agents.values()){
+    const r = {id:a.id, name:a.name, tl:a.tl, un:a.un};
+    r.status = a.staffed ? "Active" : "Unpaid";
+    r.pure = Math.max(0, a.pure - a.comp);
+    r.comp = a.comp;
 
-    const reach  = a.trials > 0 ? a.reached / a.trials : 0;
-    const reachW = reach >= 0.92 ? 0.2 : reach >= 0.9 ? 0.12 : reach >= 0.8 ? 0.06 : 0;
+    const ir = irMap.get(a.un.toLowerCase());
+    r.points  = ir ? ir.points : 0;
+    r.reached = ir ? ir.reached : 0;
+    r.trials  = ir ? ir.rows - ir.noCall : 0;
+    r.pph   = r.pure > 0 ? r.points / r.pure : 0;
+    r.reach = r.trials > 0 ? r.reached / r.trials : 0;
+    r.prodW  = r.pph >= 60 ? 0.3 : r.pph >= 54 ? 0.2 : r.pph >= 48 ? 0.1 : 0;
+    r.reachW = r.reach >= 0.92 ? 0.2 : r.reach >= 0.9 ? 0.12 : r.reach >= 0.8 ? 0.06 : 0;
 
-    const ctc = a.monitored ? a.ctc / a.monitored : 0;
-    const ctb = a.monitored ? a.ctb / a.monitored : 0;
-    const nc  = a.monitored ? a.nc  / a.monitored : 0;
-    const qualAcc = ctc*0.7 + ctb*0.2 + nc*0.1;
-    const qualW   = qualAcc * 0.1;
+    r.monitored = a.monitored;
+    r.failCtc = a.monitored - a.ctc;
+    r.failCtb = a.monitored - a.ctb;
+    r.nc = a.nc;
+    r.qualW = 0.1 + (r.failCtc * -0.07) + (r.failCtb * -0.04) + (r.nc * -0.02);
 
-    const absDays = a.absent + a.sick + a.emerg;
-    const absW = absDays === 0 ? 0.1 : absDays === 1 ? 0.05 : 0;
+    r.absent = a.absent; r.sick = a.sick; r.emerg = a.emerg;
+    const none = a.absent === 0 && a.sick === 0 && a.emerg === 0;
+    r.absentP = none ? 0.1 : (a.absent === 1 ? -0.05 : (a.absent > 1 ? -0.1 : 0));
+    r.sickP   = none ? 0.1 : (a.sick > 4 ? -0.2 : (a.sick === 3 ? -0.13 : (a.sick === 2 ? -0.06 : (a.sick === 1 ? -0.02 : 0))));
+    r.emergP  = (none ? -0.1 : (a.emerg === 1 ? 0.03 : (a.emerg > 1 ? 0.09 : 0))) * -1;
+    r.absW = (a.absent + a.sick + a.emerg > 0) ? 0.1 + r.absentP + r.sickP + r.emergP : 0.1;
+    r.days = a.absent + a.sick + a.emerg;
 
-    const auditScore = auditByUN[a.name] ?? null;
-    const auditW = auditScore === null ? 0 : auditScore >= 0.95 ? 0.3 : auditScore >= 0.85 ? 0.2 : auditScore >= 0.75 ? 0.1 : 0;
+    const sc = auditMap.get(a.un.toLowerCase());
+    r.audit = sc === undefined ? null : sc;
+    r.auditW = r.audit === null ? 0 : (r.audit >= 0.95 ? 0.3 : r.audit >= 0.85 ? 0.2 : r.audit >= 0.75 ? 0.1 : 0);
 
-    const total = prodW + reachW + qualW + auditW + absW;
-
-    out.push({id, name:a.name, tl:a.tl, pure:hours, comp:a.comp, pph, prodW,
-              reach, reachW, monitored:a.monitored, qualAcc, qualW,
-              absDays, absW, audit:auditScore, auditW, total});
+    r.total = r.prodW + r.reachW + r.qualW + r.auditW + r.absW;      // Pending audit counts as 0, like SUM() in Excel
+    out.push(r);
   }
+  out.forEach(applyAdj);
+  RESULT.warns = W;
   return out;
 }
 
-function finalize(row){
-  const a = adjOf(row.id);
-  row.complaint = a.complaint;
-  row.penalty   = a.penalty;
-  row.bonus     = a.bonus;
-  row.final     = row.total + a.penalty/100 + a.bonus/100;
-  return row;
+function applyAdj(r){
+  const a = adjOf(r.id);
+  r.complaint = a.complaint; r.penalty = a.penalty; r.bonus = a.bonus;
+  r.final = r.total + (a.penalty + a.bonus) / 100;
 }
 
-/* ===================== RENDER ===================== */
+/* ============================================================
+   RENDER
+   ============================================================ */
+const P   = v => +(v * 100).toFixed(1) + "%";
+const H2  = v => v.toFixed(2);
+const N1  = v => v.toFixed(1);
+const INT = v => String(v);
+const AUD = v => v === null ? "Pending" : P(v);
+
+const GROUPS = [
+  {id:"sched", title:"Schedule", keep:"prodW", cols:[
+    ["pure","Pure Time (h)",H2], ["comp","Comp (h)",H2], ["points","Total Points",N1], ["pph","Points / Hr",N1], ["prodW","Productivity (30%)",P,true]]},
+  {id:"reach", title:"Reachability", keep:"reachW", cols:[
+    ["reached","Reached",INT], ["trials","Trials",INT], ["reach","Reachability",P], ["reachW","Reachability (20%)",P,true]]},
+  {id:"qual", title:"Quality", keep:"qualW", cols:[
+    ["monitored","Monitored",INT], ["failCtc","Fail CTC",INT], ["failCtb","Fail CTB",INT], ["nc","NC Errors",INT], ["qualW","Quality (10%)",P,true]]},
+  {id:"abs", title:"Absence", keep:"absW", cols:[
+    ["absent","Absent d",INT], ["sick","Sick d",INT], ["emerg","Emergency d",INT],
+    ["absentP","Absent %",P], ["sickP","Sick %",P], ["emergP","Emergency %",P], ["absW","Absent (10%)",P,true]]},
+  {id:"audit", title:"Audit", keep:"auditW", cols:[
+    ["audit","Audit Data",AUD], ["auditW","Audit (30%)",P,true]]},
+  {id:"fin", title:"Final", fixed:true, cols:[
+    ["total","Total KPIs",P,true], ["complaint","Complaint",null,false,"y"], ["penalty","Penalty %",null,false,"r"],
+    ["bonus","Bonus %",null,false,"g"], ["final","Final KPIs %",P,true]]}
+];
+
 function setSearch(v){ STATE.search = v.toLowerCase(); renderTable(); }
+function toggleGroup(id){ STATE.collapsed[id] = !STATE.collapsed[id]; renderTable(); }
 
-function visibleRows(){
-  const q = STATE.search;
-  return RESULT.agents.filter(r => !q || `${r.id} ${r.name} ${r.tl}`.toLowerCase().includes(q));
-}
-
-function cellHTML(r, c, g){
-  if (c.input){
-    const v = adjOf(r.id)[c.k];
-    return `<td><input type="number" step="0.5" class="inp ${c.cls}" value="${v}" onchange="setAdj('${r.id}','${c.k}',this.value)"></td>`;
-  }
-  const tag = c.k === "final" ? ` data-final="${r.id}"` : "";
-  return `<td${tag}>${c.f(r[c.k])}</td>`;
+function shownCols(g){
+  return (STATE.collapsed[g.id] && !g.fixed) ? g.cols.filter(c => c[0] === g.keep) : g.cols;
 }
 
 function renderTable(){
-  const thead = document.querySelector("#tbl thead");
-  const tbody = document.querySelector("#tbl tbody");
-  let h1 = `<tr><th colspan="3" style="background:var(--g1)">Agent</th>`;
-  for (const g of GROUPS){
-    const c = STATE.collapsed[g.id];
-    h1 += `<th colspan="${c?1:g.cols.length}" class="g-${g.id}">${g.title}<button class="tog" onclick="toggleGroup('${g.id}')">${c?'+':'−'}</button></th>`;
-  }
-  h1 += "</tr>";
-  let h2 = `<tr><th>ID</th><th>Name</th><th>TL</th>`;
-  for (const g of GROUPS){
-    const cols = STATE.collapsed[g.id] ? g.cols.slice(0,1) : g.cols;
-    h2 += cols.map(c=>`<th>${c.label}</th>`).join("");
-  }
-  h2 += "</tr>";
-  thead.innerHTML = h1 + h2;
+  const thead = $("tbl").querySelector("thead"), tbody = $("tbl").querySelector("tbody");
+  if (!RESULT.agents.length){ thead.innerHTML = ""; tbody.innerHTML = ""; $("count").textContent = ""; return; }
 
-  const rows = visibleRows();
-  tbody.innerHTML = rows.map(r=>{
-    let tds = `<td>${r.id}</td><td>${r.name||""}</td><td>${r.tl||""}</td>`;
+  let h1 = `<tr><th colspan="4" class="g-agent">Agent</th>`;
+  for (const g of GROUPS){
+    const cols = shownCols(g);
+    const btn = g.fixed ? "" : `<button class="tog" onclick="toggleGroup('${g.id}')">${STATE.collapsed[g.id] ? "+" : "−"}</button>`;
+    h1 += `<th colspan="${cols.length}" class="g-${g.id}">${g.title}${btn}</th>`;
+  }
+  let h2 = `<tr><th>ID</th><th>UN</th><th>Name</th><th>TL</th>`;
+  for (const g of GROUPS) h2 += shownCols(g).map(c => `<th>${c[1]}</th>`).join("");
+  thead.innerHTML = h1 + "</tr>" + h2 + "</tr>";
+  document.documentElement.style.setProperty("--h1", thead.rows[0].offsetHeight + "px");
+
+  const q = STATE.search;
+  const rows = RESULT.agents.filter(r => !q || `${r.id} ${r.un} ${r.name} ${r.tl}`.toLowerCase().includes(q));
+  tbody.innerHTML = rows.map(r => {
+    const on = r.status === "Active";
+    let tds = `<td>${esc(r.id)}</td><td class="l">${esc(r.un)}</td><td class="l">${esc(r.name)}</td><td class="l">${esc(r.tl)}</td>`;
     for (const g of GROUPS){
-      const cols = STATE.collapsed[g.id] ? g.cols.slice(0,1) : g.cols;
-      tds += cols.map(c=>cellHTML(r, c, g)).join("");
+      for (const c of shownCols(g)){
+        const [k, , f, isW, inpCls] = c;
+        if (inpCls){
+          tds += `<td><input type="number" step="0.5" class="inp ${inpCls}" value="${r[k]}" onchange="setAdj('${esc(r.id)}','${k}',this.value)"></td>`;
+        } else if (!on && (isW || k === "total" || k === "final")){
+          tds += `<td>${r.status}</td>`;
+        } else if (k === "final" || k === "total"){
+          tds += `<td data-k="${k}-${esc(r.id)}"><b>${f(r[k])}</b></td>`;
+        } else {
+          tds += `<td>${f(r[k])}</td>`;
+        }
+      }
     }
-    const bad = r.final < 0.5 ? " class='bad'" : "";
-    return `<tr${bad}>${tds}</tr>`;
+    const cls = !on ? "off" : (r.final < 0.5 ? "bad" : "");
+    return `<tr class="${cls}">${tds}</tr>`;
   }).join("");
-
-  document.getElementById("count").textContent = `Showing ${rows.length} of ${RESULT.agents.length}`;
-}
-
-function toggleGroup(id){
-  STATE.collapsed[id] = !STATE.collapsed[id];
-  renderTable();
+  $("count").textContent = `Showing ${rows.length} of ${RESULT.agents.length}`;
 }
 
 function setAdj(id, k, val){
   adjOf(id)[k] = Number(val) || 0;
-  const row = RESULT.agents.find(x=>x.id===id);
-  if (!row) return;
-  finalize(row);
-  const cell = document.querySelector(`[data-final="${id}"]`);
-  if (cell) cell.textContent = pct(row.final);
-  renderCards();
-  renderTL();
+  const r = RESULT.agents.find(x => x.id === id);
+  if (!r) return;
+  applyAdj(r);
+  const cell = document.querySelector(`[data-k="final-${CSS.escape(id)}"]`) || [...document.querySelectorAll("td[data-k]")].find(td => td.dataset.k === "final-" + id);
+  if (cell) cell.innerHTML = `<b>${P(r.final)}</b>`;
+  renderCards(); renderTL();
 }
 
-function setCard(id, val, pctFill, sub){
-  document.getElementById("v_"+id).textContent = val;
-  document.getElementById("b_"+id).style.width = Math.max(0, Math.min(100, pctFill)) + "%";
-  document.getElementById("s_"+id).textContent = sub;
+function setCard(id, val, fill, sub){
+  $("v_"+id).textContent = val;
+  $("b_"+id).style.width = Math.max(0, Math.min(100, fill)) + "%";
+  $("s_"+id).textContent = sub;
 }
 
 function renderCards(){
-  const rows = RESULT.agents;
-  const n = rows.length;
-  if (!n){
-    ["agents","pure","abs","qual","aud","final"].forEach(k=>setCard(k,"0",0,"—"));
+  const all = RESULT.agents, act = all.filter(r => r.status === "Active"), n = act.length;
+  if (!all.length){
+    ["agents","pure","abs","qual","aud","final"].forEach(k => setCard(k, k === "qual" || k === "final" ? "0%" : "0", 0, "—"));
     return;
   }
-  const pure = rows.reduce((s,r)=>s+r.pure,0);
-  const abs  = rows.reduce((s,r)=>s+r.absDays,0);
-  const qual = rows.reduce((s,r)=>s+r.qualAcc,0)/n;
-  const aud  = rows.filter(r=>r.audit!==null).length;
-  const fin  = rows.reduce((s,r)=>s+r.final,0)/n;
-
-  setCard("agents", n, 100, "Agents in structure");
-  setCard("pure",   pure.toFixed(1)+" h", 100, "Net pure time after comp");
-  setCard("abs",    abs, Math.min(100, abs), "Absent + Sick + Emergency");
-  setCard("qual",   pct(qual), qual*100, "Weighted accuracy");
-  setCard("aud",    aud+" / "+n, n?aud/n*100:0, "Agents with audit score");
-  setCard("final",  pct(fin), fin*100, "Average Final KPI");
+  const sum = f => act.reduce((s, r) => s + f(r), 0);
+  const avg = f => n ? sum(f) / n : 0;
+  const aud = act.filter(r => r.audit !== null).length;
+  setCard("agents", n, all.length ? n / all.length * 100 : 0, `${all.length - n} unpaid / not staffed`);
+  setCard("pure", sum(r => r.pure).toFixed(1) + " h", 100, "Net of compensation");
+  setCard("abs", sum(r => r.days), Math.min(100, sum(r => r.days)), "Absent + Sick + Emergency");
+  setCard("qual", P(avg(r => r.qualW)), avg(r => r.qualW) * 1000, "Average Quality (10%) weight");
+  setCard("aud", `${aud} / ${n}`, n ? aud / n * 100 : 0, "Active agents with an audit score");
+  setCard("final", P(avg(r => r.final)), avg(r => r.final) * 100, "Average Final KPI (active)");
 }
 
 function renderTL(){
-  const box = document.getElementById("tl");
   const map = {};
-  for (const r of RESULT.agents){
-    const k = r.tl || "Unassigned";
-    (map[k] ??= []).push(r.final);
-  }
-  const rows = Object.entries(map).map(([tl,arr])=>({tl, avg: arr.reduce((a,b)=>a+b,0)/arr.length, n:arr.length}))
-                                  .sort((a,b)=>b.avg-a.avg);
-  if (!rows.length){ box.innerHTML = "<div class='foot'>No data yet.</div>"; return; }
-  box.innerHTML = rows.map(x=>`
+  for (const r of RESULT.agents) if (r.status === "Active") (map[r.tl || "Unassigned"] ??= []).push(r.final);
+  const rows = Object.entries(map).map(([tl, a]) => ({tl, n:a.length, avg:a.reduce((x, y) => x + y, 0) / a.length}))
+                                  .sort((a, b) => b.avg - a.avg);
+  $("tl").innerHTML = rows.length ? rows.map(x => `
     <div class="tl-row">
-      <b title="${x.tl}">${x.tl} <span style="color:var(--muted);font-weight:400">(${x.n})</span></b>
-      <div class="bar"><i style="width:${Math.max(0,Math.min(100,x.avg*100))}%"></i></div>
-      <em>${pct(x.avg)}</em>
-    </div>`).join("");
+      <b title="${esc(x.tl)}">${esc(x.tl)} <span style="color:var(--muted);font-weight:400">(${x.n})</span></b>
+      <div class="bar"><i style="width:${Math.max(0, Math.min(100, x.avg * 100))}%"></i></div>
+      <em>${P(x.avg)}</em>
+    </div>`).join("") : "<div class='foot'>No active agents.</div>";
 }
 
-/* ===================== ACTIONS ===================== */
+function renderDiag(){
+  const box = $("diagBox"); box.style.display = "";
+  let html = "";
+  for (const k in SPEC){
+    const d = DIAG[k];
+    if (!d.file){ html += `<div class="item bad"><b>${d.label}</b><br>Not uploaded.</div>`; continue; }
+    const bad = !d.ok;
+    let body = `<b>${d.label}</b> — ${esc(d.file)}<br>`;
+    if (d.sheet) body += `Sheet <code>${esc(d.sheet)}</code>`;
+    if (d.headerRow) body += `, header row <code>${d.headerRow}</code>`;
+    if (d.rows !== undefined) body += `, rows read <code>${d.rows}</code>`;
+    if (d.matched !== undefined) body += `, matched to agents <code>${d.matched}</code>`;
+    if (d.raw) body += `<br><span class="warn">Read as raw report (guessed layout)</span>`;
+    if (d.positional) body += `<br><span class="warn">Headers not recognised: used column positions</span>`;
+    if (d.map && d.headers){
+      body += "<br>" + Object.entries(d.map).map(([key, ix]) => `${key} ← <code>${esc(clean(d.headers[ix]))}</code>`).join(" · ");
+    }
+    if (d.missing && d.missing.length) body += `<br><span class="warn">Missing: ${d.missing.join(", ")}</span>`;
+    if (!d.ok && d.headers && !d.map){
+      body += `<br>Headers seen: ${d.headers.slice(0, 12).map(h => `<code>${esc(clean(h))}</code>`).join(" ")}`;
+    }
+    html += `<div class="item ${bad ? "bad" : ""}">${body}</div>`;
+  }
+  for (const w of RESULT.warns) html += `<div class="item bad"><span class="warn">${esc(w)}</span></div>`;
+  $("diag").innerHTML = html;
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
 async function runAll(){
   try{
-    log("Loading files...");
+    log("Reading files...");
     await loadAll();
-    if (!DATA.staffed){ log("Upload at least the Staffed file."); return; }
-    if (DATA.staffed.length && !("ID" in DATA.staffed[0])){
-      log("Staffed file: column 'ID' not found. Found: " + Object.keys(DATA.staffed[0]).join(", "));
-      return;
-    }
-    RESULT.agents = calcAll().map(finalize);
-    renderTable();
-    renderCards();
-    renderTL();
-    log("Done.");
-  }catch(e){ log("Error: "+e.message); console.error(e); }
+    if (!DATA.staffed && !DATA.str){ log("Upload at least Staffed and Str, then press Run.", true); return; }
+    RESULT.agents = compute();
+    renderDiag(); renderTable(); renderCards(); renderTL();
+    const act = RESULT.agents.filter(r => r.status === "Active").length;
+    if (!RESULT.agents.length) log("No agents found. Open 'File check' below to see how each file was read.", true);
+    else log(`Done: ${RESULT.agents.length} agents (${act} active).`);
+  }catch(e){ log("Error: " + e.message, true); console.error(e); }
 }
 
 function resetAll(){
-  ["f_staffed","f_comp","f_q","f_audit","f_ir","f_str"].forEach(id=>document.getElementById(id).value="");
+  Object.values(FILE_IDS).forEach(id => $(id).value = "");
   for (const k in DATA) delete DATA[k];
   for (const k in ADJ) delete ADJ[k];
-  RESULT.agents = [];
-  STATE.collapsed = {};
-  document.getElementById("q").value = "";
-  STATE.search = "";
-  document.querySelector("#tbl thead").innerHTML = "";
-  document.querySelector("#tbl tbody").innerHTML = "";
-  document.getElementById("tl").innerHTML = "";
-  document.getElementById("count").textContent = "";
-  renderCards();
+  RESULT.agents = []; RESULT.warns = [];
+  STATE.collapsed = {sched:true, reach:true, qual:true, abs:true, audit:true};
+  STATE.search = ""; $("q").value = "";
+  $("diagBox").style.display = "none"; $("diag").innerHTML = "";
+  $("tl").innerHTML = "";
+  renderTable(); renderCards();
   log("Reset done.");
 }
 
 function exportXLSX(){
-  if (!RESULT.agents.length){ log("Run first, then export."); return; }
-  const rows = RESULT.agents.map(r=>({
-    "Agent ID":r.id, "Name":r.name, "TL":r.tl,
-    "Pure (h)":+r.pure.toFixed(2), "Comp (h)":+r.comp.toFixed(2), "Pts/h":+r.pph.toFixed(2),
-    "Prod W":+r.prodW.toFixed(2), "Reach %":+(r.reach*100).toFixed(1), "Reach W":+r.reachW.toFixed(2),
-    "Sheets":r.monitored, "Quality %":+(r.qualAcc*100).toFixed(1), "Quality W":+r.qualW.toFixed(3),
-    "Absence Days":r.absDays, "Absent W":+r.absW.toFixed(2),
-    "Audit":r.audit===null?"Pending":+(r.audit*100).toFixed(1), "Audit W":+r.auditW.toFixed(2),
-    "Total KPI %":+(r.total*100).toFixed(1), "Complaint":r.complaint,
-    "Penalty %":r.penalty, "Bonus %":r.bonus, "Final KPI %":+(r.final*100).toFixed(1)
+  if (!RESULT.agents.length){ log("Run first, then export.", true); return; }
+  const rows = RESULT.agents.map(r => ({
+    "ID":r.id, "UN":r.un, "Name":r.name, "TL":r.tl, "Status":r.status,
+    "Pure Time (h)":+r.pure.toFixed(2), "Comp (h)":+r.comp.toFixed(2), "Total Points":+r.points.toFixed(1), "Points/Hr":+r.pph.toFixed(2),
+    "Productivity (30%)":r.prodW, "Reached":r.reached, "Trials":r.trials, "Reachability":+r.reach.toFixed(4), "Reachability (20%)":r.reachW,
+    "Monitored":r.monitored, "Fail CTC":r.failCtc, "Fail CTB":r.failCtb, "NC Errors":r.nc, "Quality (10%)":+r.qualW.toFixed(4),
+    "Absent d":r.absent, "Sick d":r.sick, "Emergency d":r.emerg, "Absent %":r.absentP, "Sick %":r.sickP, "Emergency %":r.emergP, "Absent (10%)":+r.absW.toFixed(4),
+    "Audit Data":r.audit === null ? "Pending" : r.audit, "Audit (30%)":r.auditW,
+    "Total KPIs":+r.total.toFixed(4), "Complaint":r.complaint, "Penalty %":r.penalty, "Bonus %":r.bonus, "Final KPIs":+r.final.toFixed(4)
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
