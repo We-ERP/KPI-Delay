@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Final KPI Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --green:#1e7b4a; --green-d:#145a35; --green-l:#e8f5ee;
+    --red:#c0392b; --red-l:#fdecea;
+    --white:#ffffff; --ink:#1d2b24; --muted:#6b7b72; --line:#d6e4dc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:#f3f7f4;color:var(--ink)}
+  header{background:linear-gradient(120deg,var(--green-d),var(--green));color:var(--white);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  header h1{margin:0;font-size:22px;font-weight:700}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  button{border:none;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:14px;transition:.15s}
+  button:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.15)}
+  .btn-white{background:var(--white);color:var(--green-d)}
+  .btn-red{background:var(--red);color:var(--white)}
+  .btn-green{background:var(--green);color:var(--white)}
+  .btn-ghost{background:transparent;color:var(--green);border:1.5px solid var(--green);padding:6px 12px;font-size:13px}
+  main{padding:22px 28px;direction:ltr}
+  .upload{background:var(--white);border:2px dashed var(--line);border-radius:12px;padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+  .upload label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+  .upload input{width:100%;font-size:13px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  .card{background:var(--white);border-radius:14px;padding:18px;box-shadow:0 2px 10px rgba(30,123,74,.08);border-top:5px solid var(--green);display:flex;flex-direction:column;gap:10px}
+  .card.red{border-top-color:var(--red)}
+  .card h3{margin:0;font-size:15px;color:var(--green-d);display:flex;justify-content:space-between;align-items:center}
+  .card .big{font-size:30px;font-weight:700}
+  .card .sub{font-size:13px;color:var(--muted)}
+  .card .status{font-size:12px;padding:3px 8px;border-radius:20px;background:var(--green-l);color:var(--green-d);align-self:flex-start}
+  .card.red .status{background:var(--red-l);color:var(--red)}
+  .tbl-wrap{background:var(--white);border-radius:14px;margin-top:22px;overflow:auto;box-shadow:0 2px 10px rgba(0,0,0,.05);max-height:520px}
+  table{width:100%;border-collapse:collapse;font-size:13px;direction:ltr}
+  thead th{position:sticky;top:0;background:var(--green);color:var(--white);padding:9px 10px;text-align:left;white-space:nowrap}
+  tbody td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody tr:nth-child(even){background:#f8fbf9}
+  tbody tr.bad td{background:var(--red-l)}
+  .section-title{margin:26px 0 10px;font-size:16px;color:var(--green-d);font-weight:700}
+  .log{margin-top:14px;font-size:12px;color:var(--muted);min-height:18px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Final KPI Dashboard</h1>
+  <div class="toolbar">
+    <button class="btn-red" onclick="resetAll()">Reset</button>
+    <button class="btn-white" onclick="runAll()">Run</button>
+    <button class="btn-green" onclick="exportXLSX()">Export</button>
+  </div>
+</header>
+
+<main>
+  <div class="upload">
+    <div><label>Staffed</label><input type="file" id="f_staffed" accept=".xlsx,.xlsm,.xls,.csv"></div>
+    <div><label>Comp</label><input type="file" id="f_comp" accept=".xlsx,.xlsm,.xls,.csv"></div>
+    <div><label>Q (Quality)</label><input type="file" id="f_q" accept=".xlsx,.xlsm,.xls,.csv"></div>
+    <div><label>Audit</label><input type="file" id="f_audit" accept=".xlsx,.xlsm,.xls,.csv"></div>
+    <div><label>IR OTC</label><input type="file" id="f_ir" accept=".xlsx,.xlsm,.xls,.csv"></div>
+  </div>
+
+  <div class="cards">
+    <div class="card" id="card_pure">
+      <h3>Pure Time <button class="btn-ghost" onclick="runCard('pure')">Run</button></h3>
+      <div class="big" id="v_pure">0</div><div class="sub" id="s_pure">Agents: 0</div><span class="status" id="st_pure">Waiting</span>
+    </div>
+    <div class="card" id="card_abs">
+      <h3>Absence <button class="btn-ghost" onclick="runCard('abs')">Run</button></h3>
+      <div class="big" id="v_abs">0</div><div class="sub" id="s_abs">Absent / Sick / Emergency days</div><span class="status" id="st_abs">Waiting</span>
+    </div>
+    <div class="card" id="card_quality">
+      <h3>Quality <button class="btn-ghost" onclick="runCard('quality')">Run</button></h3>
+      <div class="big" id="v_quality">0%</div><div class="sub" id="s_quality">Weighted accuracy</div><span class="status" id="st_quality">Waiting</span>
+    </div>
+    <div class="card" id="card_comp">
+      <h3>Compensation <button class="btn-ghost" onclick="runCard('comp')">Run</button></h3>
+      <div class="big" id="v_comp">0</div><div class="sub" id="s_comp">Hours deducted</div><span class="status" id="st_comp">Waiting</span>
+    </div>
+    <div class="card" id="card_audit">
+      <h3>Audit <button class="btn-ghost" onclick="runCard('audit')">Run</button></h3>
+      <div class="big" id="v_audit">0</div><div class="sub" id="s_audit">Agents with audit</div><span class="status" id="st_audit">Waiting</span>
+    </div>
+    <div class="card red" id="card_tl">
+      <h3>TL KPI <button class="btn-ghost" onclick="runCard('tl')">Run</button></h3>
+      <div class="big" id="v_tl">0</div><div class="sub" id="s_tl">Team leaders</div><span class="status" id="st_tl">Waiting</span>
+    </div>
+  </div>
+
+  <div class="section-title">Final KPI</div>
+  <div class="tbl-wrap">
+    <table id="final_tbl"><thead></thead><tbody></tbody></table>
+  </div>
+  <div class="log" id="log"></div>
+</main>
+
+<script>
+/* ===================== CONFIG ===================== */
+const CODES = {
+  pure:     ["Phone", "Covering E.C", "Covering HSH instability"],
+  absence:  ["Absent", "Sick Leave", "Emergency"],
+  excluded: ["Break 2", "HSH E.C", "HSH instab", "HR investigation", "Planned sick", "HSH instability"]
+};
+// Column names as they appear in the source sheets (edit here if they change)
+const COL = {
+  ir:    {id:"Login ID", user:"Agent Name", reached:"Reached", noCall:"No call", points:"Points total", floor:"Floor"},
+  audit: {user:"UN", score:"Score"},
+  q:     {agentId:"Agent ID", count:"Count of monitored sheets", ctc:"Sum of clear CTC agent", ctb:"Sum of clear CTB agent", nc:"Sum of NC"}
+};
+
+/* ===================== STATE ===================== */
+const DATA = {};
+const RESULT = {agents:[], byCard:{}};
+
+/* ===================== HELPERS ===================== */
+function log(msg){ document.getElementById("log").textContent = msg; }
+
+function parseDuration(v){
+  if (v === null || v === undefined || v === "") return 0;
+  if (typeof v === "number") return v * 24;             // Excel time fraction -> hours
+  const p = String(v).trim().split(":").map(Number);
+  if (p.some(isNaN)) return 0;
+  return (p[0] || 0) + (p[1] || 0)/60 + (p[2] || 0)/3600;
+}
+
+function readFile(input){
+  return new Promise((res, rej)=>{
+    const f = input.files[0];
+    if (!f) return res(null);
+    const r = new FileReader();
+    r.onload = e => {
+      const wb = XLSX.read(e.target.result, {type:"array", cellDates:false});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      res(XLSX.utils.sheet_to_json(ws, {defval:"", raw:true}));
+    };
+    r.onerror = rej;
+    r.readAsArrayBuffer(f);
+  });
+}
+
+async function loadAll(){
+  const map = {staffed:"f_staffed", comp:"f_comp", q:"f_q", audit:"f_audit", ir:"f_ir"};
+  for (const k in map){
+    DATA[k] = await readFile(document.getElementById(map[k]));
+  }
+}
+
+function setStatus(id, text, ok){
+  const el = document.getElementById("st_"+id);
+  el.textContent = text;
+  el.parentElement.classList.toggle("red", ok === false);
+}
+
+/* ===================== CALCULATIONS ===================== */
+function calcAll(){
+  const staffed = DATA.staffed || [];
+  const comp    = DATA.comp    || [];
+  const q       = DATA.q       || [];
+  const audit   = DATA.audit   || [];
+  const ir      = DATA.ir      || [];
+
+  // Pure time, absence per agent (Login ID)
+  const agents = {};
+  const get = id => (agents[id] ??= {id, pure:0, absent:0, sick:0, emerg:0, comp:0, name:"", tl:"",
+                                      reached:0, trials:0, points:0, ctc:0, ctb:0, nc:0, monitored:0,
+                                      audit:null, qual:0});
+
+  for (const r of staffed){
+    const id = String(r["ID"]).trim();
+    if (!id) continue;
+    const a = get(id);
+    a.name = a.name || r["Agent Name"];
+    a.tl   = a.tl   || r["TL"];
+    const code = String(r["Code"]).trim();
+    const hrs  = parseDuration(r["Duration"]);
+    if (CODES.pure.includes(code))    a.pure   += hrs;
+    if (code === "Absent")            a.absent += 1;
+    if (code === "Sick Leave")        a.sick   += 1;
+    if (code === "Emergency")         a.emerg  += 1;
+  }
+
+  for (const r of comp){
+    const id = String(r["ID"]).trim();
+    if (!id) continue;
+    get(id).comp += parseDuration(r["Code Time"]);
+  }
+
+  for (const id in agents){
+    const a = agents[id];
+    a.pureNet = Math.max(0, a.pure - a.comp);    // all comp is deducted from pure
+  }
+
+  // Quality
+  for (const r of q){
+    const id = String(r[COL.q.agentId] || "").trim();
+    if (!id || !agents[id]) continue;
+    const a = agents[id];
+    a.monitored += Number(r[COL.q.count]) || 0;
+    a.ctc += Number(r[COL.q.ctc]) || 0;
+    a.ctb += Number(r[COL.q.ctb]) || 0;
+    a.nc  += Number(r[COL.q.nc])  || 0;
+  }
+
+  // Audit
+  for (const r of audit){
+    const un = String(r[COL.audit.user] || "").trim();
+    const a = Object.values(agents).find(x => x.name && false); // placeholder (matched by UN below)
+  }
+  const auditByUN = {};
+  for (const r of audit){
+    auditByUN[String(r[COL.audit.user]).trim()] = Number(r[COL.audit.score]) || null;
+  }
+
+  // IR (reachability and productivity points)
+  for (const r of ir){
+    const id = String(r[COL.ir.id] || "").trim();
+    if (!id || !agents[id]) continue;
+    const a = agents[id];
+    const st = String(r[COL.ir.reached] || "").trim();
+    if (st === "Reached") a.reached++;
+    if (st !== COL.ir.noCall) a.trials++;
+    if (String(r[COL.ir.floor]).trim() === "Floor") a.points += Number(r[COL.ir.points]) || 0;
+  }
+
+  // Score each agent
+  const out = [];
+  for (const id in agents){
+    const a = agents[id];
+    const hours = a.pureNet;
+    const pph = hours > 0 ? a.points / hours : 0;
+    const prodW = pph >= 60 ? 0.3 : pph >= 54 ? 0.2 : pph >= 48 ? 0.1 : 0;
+
+    const reach = a.trials > 0 ? a.reached / a.trials : 0;
+    const reachW = reach >= 0.92 ? 0.2 : reach >= 0.9 ? 0.12 : reach >= 0.8 ? 0.06 : 0;
+
+    const ctcAcc = a.monitored ? a.ctc / a.monitored : 0;
+    const ctbAcc = a.monitored ? a.ctb / a.monitored : 0;
+    const ncAcc  = a.monitored ? a.nc  / a.monitored : 0;
+    const qualAcc = ctcAcc*0.7 + ctbAcc*0.2 + ncAcc*0.1;
+
+    const absDays = a.absent + a.sick + a.emerg;
+    const absW = absDays === 0 ? 0.1 : absDays === 1 ? 0.05 : 0;
+
+    const auditScore = auditByUN[a.name] ?? null;   // matched by agent name (UN)
+    const auditW = auditScore === null ? 0 : auditScore >= 0.95 ? 0.3 : auditScore >= 0.85 ? 0.2 : auditScore >= 0.75 ? 0.1 : 0;
+
+    const total = prodW + reachW + qualAcc*0.1 + auditW + absW;
+
+    out.push({
+      id, name:a.name, tl:a.tl, pure:hours, comp:a.comp, pph, prodW,
+      reach, reachW, monitored:a.monitored, qualAcc, absDays, absW,
+      audit:auditScore, auditW, total, final: total
+    });
+  }
+  RESULT.agents = out;
+  return out;
+}
+
+/* ===================== RENDER ===================== */
+const fmtPct = v => (v*100).toFixed(1)+"%";
+const fmtH   = v => v.toFixed(2);
+
+function renderTable(rows){
+  const cols = [
+    ["Agent ID","id"],["Name","name"],["TL","tl"],["Pure (h)","pure",fmtH],["Comp (h)","comp",fmtH],
+    ["Pts/h","pph",v=>v.toFixed(1)],["Prod W","prodW",v=>v.toFixed(2)],["Reach %","reach",fmtPct],["Reach W","reachW",v=>v.toFixed(2)],
+    ["Quality %","qualAcc",fmtPct],["Absence Days","absDays"],["Absent W","absW",v=>v.toFixed(2)],["Audit","audit",v=>v===null?"Pending":v],
+    ["Audit W","auditW",v=>v.toFixed(2)],["Final KPI %","final",fmtPct]
+  ];
+  const thead = document.querySelector("#final_tbl thead");
+  const tbody = document.querySelector("#final_tbl tbody");
+  thead.innerHTML = "<tr>"+cols.map(c=>`<th>${c[0]}</th>`).join("")+"</tr>";
+  tbody.innerHTML = rows.map(r=>{
+    const bad = r.final < 0.5 ? " class='bad'" : "";
+    return `<tr${bad}>`+cols.map(c=>{
+      const v = r[c[1]];
+      return `<td>${c[2] ? c[2](v) : v}</td>`;
+    }).join("")+"</tr>";
+  }).join("");
+}
+
+function setCard(id, big, sub, ok){
+  document.getElementById("v_"+id).textContent = big;
+  document.getElementById("s_"+id).textContent = sub;
+  setStatus(id, ok ? "OK" : "Check", ok);
+}
+
+function renderCards(rows){
+  const n = rows.length;
+  const pure = rows.reduce((s,r)=>s+r.pure,0);
+  const abs  = rows.reduce((s,r)=>s+r.absDays,0);
+  const comp = rows.reduce((s,r)=>s+r.comp,0);
+  const q    = n ? rows.reduce((s,r)=>s+r.qualAcc,0)/n : 0;
+  const aud  = rows.filter(r=>r.audit!==null).length;
+  const tls  = new Set(rows.map(r=>r.tl)).size;
+
+  setCard("pure",    fmtH(pure)+" h", "Agents: "+n, n>0);
+  setCard("abs",     abs+" days", "Absent / Sick / Emergency", true);
+  setCard("quality", fmtPct(q), "Average weighted accuracy", q>0);
+  setCard("comp",    fmtH(comp)+" h", "Total deducted", true);
+  setCard("audit",   aud+" / "+n, "Agents with audit score", aud>0);
+  setCard("tl",      tls, "Team leaders", tls>0);
+}
+
+/* ===================== ACTIONS ===================== */
+async function runAll(){
+  try{
+    log("Loading files...");
+    await loadAll();
+    if (!DATA.staffed){ log("Upload at least the Staffed file."); return; }
+    const rows = calcAll();
+    renderTable(rows);
+    renderCards(rows);
+    log("Done. Agents: "+rows.length);
+  }catch(e){ log("Error: "+e.message); console.error(e); }
+}
+
+async function runCard(which){
+  try{
+    if (!RESULT.agents.length) await runAll();
+    const rows = RESULT.agents;
+    renderCards(rows);
+    log("Refreshed card: "+which);
+  }catch(e){ log("Error: "+e.message); }
+}
+
+function resetAll(){
+  for (const id of ["f_staffed","f_comp","f_q","f_audit","f_ir"])
+    document.getElementById(id).value = "";
+  for (const k in DATA) delete DATA[k];
+  RESULT.agents = [];
+  document.querySelector("#final_tbl thead").innerHTML = "";
+  document.querySelector("#final_tbl tbody").innerHTML = "";
+  for (const id of ["pure","abs","quality","comp","audit","tl"]){
+    document.getElementById("v_"+id).textContent = "0";
+    document.getElementById("s_"+id).textContent = "";
+    setStatus(id,"Waiting",true);
+  }
+  log("Reset done.");
+}
+
+function exportXLSX(){
+  if (!RESULT.agents.length){ log("Run first, then export."); return; }
+  const rows = RESULT.agents.map(r=>({
+    "Agent ID":r.id, "Name":r.name, "TL":r.tl, "Pure (h)":+r.pure.toFixed(2),
+    "Comp (h)":+r.comp.toFixed(2), "Pts/h":+r.pph.toFixed(2), "Reach %":+(r.reach*100).toFixed(1),
+    "Quality %":+(r.qualAcc*100).toFixed(1), "Absence Days":r.absDays,
+    "Audit":r.audit ?? "Pending", "Final KPI %":+(r.final*100).toFixed(1)
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Final KPI");
+  XLSX.writeFile(wb, "Final_KPI.xlsx");
+  log("Exported Final_KPI.xlsx");
+}
+</script>
+</body>
+</html>
