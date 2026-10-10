@@ -4,7 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KPI Delay Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- Excel reader: tries a local copy first (put xlsx.full.min.js next to this file), then 3 CDNs -->
+<script>
+(function(){
+  var srcs = ["xlsx.full.min.js",
+              "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+              "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+              "https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"];
+  window.XLSX_READY = new Promise(function(done){
+    var i = 0;
+    (function next(){
+      if (window.XLSX) return done(true);
+      if (i >= srcs.length) return done(false);
+      var s = document.createElement("script");
+      s.src = srcs[i++];
+      s.onload = function(){ window.XLSX ? done(true) : next(); };
+      s.onerror = next;
+      document.head.appendChild(s);
+    })();
+  });
+})();
+</script>
 <style>
   :root{
     --g1:#0f5132; --g2:#1e7b4a; --g3:#2fa36b; --gl:#e9f7ef;
@@ -27,6 +47,7 @@
   .b-red{background:var(--r2);color:var(--w)}
   .b-white{background:var(--w);color:var(--g1)}
   .b-green{background:var(--g3);color:var(--w)}
+  .b-line{background:var(--gl);color:var(--g1);padding:7px 12px;font-size:12px}
   .tog{background:var(--w);color:var(--g1);padding:0;width:20px;height:20px;border-radius:5px;font-size:14px;line-height:18px;box-shadow:none;margin-left:8px}
   .tog:hover{transform:none;box-shadow:none}
   .search{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:var(--w);border-radius:10px;padding:9px 14px;font-size:14px;width:220px;outline:none}
@@ -45,13 +66,15 @@
   .log.err{color:var(--r1)}
   details.diag{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
   details.diag summary{cursor:pointer;font-weight:700;color:var(--g1);font-size:13px}
-  .dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:10px}
-  .dg div.item{border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;background:#fbfdfc}
+  .dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;margin-top:10px}
+  .dg div.item{border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;background:#fbfdfc;overflow:hidden}
   .dg div.item.bad{border-color:var(--r2);background:var(--rl)}
   .dg b{color:var(--g1)}
   .dg .bad b{color:var(--r1)}
   .dg code{background:var(--gl);padding:1px 5px;border-radius:5px}
   .dg .warn{color:var(--r1);font-weight:600}
+  .dg table.pv{margin-top:6px;border-collapse:collapse;font-size:11px;background:#fff}
+  .dg table.pv td{border:1px solid var(--line);padding:2px 5px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:22px}
   .card{background:var(--w);border-radius:16px;padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
   .card::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--g2)}
@@ -64,21 +87,27 @@
   .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g3),var(--g2));border-radius:20px;transition:width .6s}
   .card.red .bar i{background:linear-gradient(90deg,var(--r2),var(--r1))}
   .card .sub{font-size:12px;color:var(--muted);margin-top:8px}
-  .two{display:grid;grid-template-columns:1fr;gap:18px;margin-bottom:22px}
-  .tl-row{display:grid;grid-template-columns:150px 1fr 56px;gap:10px;align-items:center;margin:9px 0;font-size:13px}
+  .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .filters label{font-size:12px;color:var(--muted);font-weight:700}
+  .filters select{border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:13px;background:#fff;color:var(--ink);max-width:220px}
+  .tl-row{display:grid;grid-template-columns:170px 1fr 56px;gap:10px;align-items:center;margin:9px 0;font-size:13px;cursor:pointer}
+  .tl-row:hover b{text-decoration:underline}
   .tl-row b{color:var(--g1);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tl-row em{font-style:normal;text-align:right;font-weight:700}
-  .tbl-wrap{overflow:auto;max-height:600px;border-radius:12px;border:1px solid var(--line)}
+  .tbl-wrap{overflow:auto;max-height:640px;border-radius:12px;border:1px solid var(--line)}
   table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
   thead th{position:sticky;background:var(--g2);color:var(--w);padding:9px 10px;text-align:center;white-space:nowrap;font-weight:700}
   thead tr:first-child th{top:0;z-index:3}
   thead tr:nth-child(2) th{top:var(--h1,38px);z-index:2;background:var(--g1);font-size:12px}
   tbody td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center}
   tbody td.l{text-align:left}
-  tbody tr:nth-child(even){background:#f8fbf9}
-  tbody tr:hover{background:var(--gl)}
+  tbody tr.ag:nth-child(even){background:#f8fbf9}
+  tbody tr.ag:hover{background:var(--gl)}
   tbody tr.bad td{background:var(--rl)}
   tbody tr.off td{color:var(--muted);background:#f1f1f1}
+  tbody tr.tlrow td{background:#dcefe4;font-weight:700;color:var(--g1);cursor:pointer;border-bottom:1px solid #b9dcc8}
+  tbody tr.tlrow:hover td{background:#cfe8da}
+  tbody tr.tlrow small{font-weight:400;color:var(--muted);margin-left:6px}
   .g-agent{background:var(--g1)!important}
   .g-sched{background:var(--g2)!important}
   .g-reach{background:#1f8a7a!important}
@@ -100,11 +129,11 @@
     <div class="logo">KPI</div>
     <div>
       <h1>KPI Delay Dashboard</h1>
-      <div class="sub">Final KPI per agent · Team leader summary</div>
+      <div class="sub">Final KPI per agent, grouped under each team leader</div>
     </div>
   </div>
   <div class="toolbar">
-    <input class="search" id="q" placeholder="Search ID, name or TL..." oninput="setSearch(this.value)">
+    <input class="search" id="q" placeholder="Search ID, UN, name or TL..." oninput="setSearch(this.value)">
     <button class="b-red" onclick="resetAll()">Reset</button>
     <button class="b-white" onclick="runAll()">Run</button>
     <button class="b-green" onclick="exportXLSX()">Export</button>
@@ -121,7 +150,7 @@
       <div class="drop"><label>Q <span>quality</span></label><input type="file" id="f_q" accept=".xlsx,.xlsm,.xls,.csv"></div>
       <div class="drop"><label>Audit <span>audit scores</span></label><input type="file" id="f_audit" accept=".xlsx,.xlsm,.xls,.csv"></div>
       <div class="drop"><label>IR OTC <span>reachability</span></label><input type="file" id="f_ir" accept=".xlsx,.xlsm,.xls,.csv"></div>
-      <div class="drop"><label>Str <span>structure</span></label><input type="file" id="f_str" accept=".xlsx,.xlsm,.xls,.csv"></div>
+      <div class="drop"><label>Str <span>agents list</span></label><input type="file" id="f_str" accept=".xlsx,.xlsm,.xls,.csv"></div>
     </div>
     <div class="foot"><span class="log" id="log">Upload files, then press Run.</span><span id="count"></span></div>
     <details class="diag" id="diagBox" style="display:none" open>
@@ -139,15 +168,22 @@
     <div class="card" id="c_final"><div class="lbl">Avg final KPI</div><div class="val" id="v_final">0%</div><div class="bar"><i id="b_final" style="width:0"></i></div><div class="sub" id="s_final">—</div></div>
   </div>
 
-  <div class="two">
-    <div class="panel">
-      <h2>Final KPI</h2>
-      <div class="tbl-wrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+  <div class="panel">
+    <h2>Final KPI</h2>
+    <div class="filters">
+      <label id="lblGroup" style="display:none">Group</label>
+      <select id="selGroup" style="display:none" onchange="setGroup(this.value)"></select>
+      <label>Team leader</label>
+      <select id="selTL" onchange="setTL(this.value)"><option value="">All team leaders</option></select>
+      <button class="b-line" onclick="openAllTL(true)">Expand all</button>
+      <button class="b-line" onclick="openAllTL(false)">Collapse all</button>
     </div>
-    <div class="panel">
-      <h2>Team leaders</h2>
-      <div id="tl"></div>
-    </div>
+    <div class="tbl-wrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="panel">
+    <h2>Team leaders (average Final KPI, click to filter)</h2>
+    <div id="tl"></div>
   </div>
 
 </main>
@@ -164,24 +200,34 @@ const CODES = {
   emerg: ["Emergency"]
 };
 
-// Column headers each file is searched for (first alias that matches wins).
-// req = columns that must be found for the table to count as recognised.
+// IR points, used ONLY when the IR file has no "Points total" column.
+// Inferred from the sample rows you sent (please confirm):
+//   No call = 1.5 · Reached = 3.5 · Reached on a ticket whose status is "New" = 4
+const IR_POINTS = {other:1.5, reached:3.5, reachedNew:4};
+
+// Header names each file is searched for (first alias that matches wins).
+// req  = columns that must exist.  any = at least one of each listed group must exist.
+// fuzzy = if no alias matched, take the first header that CONTAINS one of these words.
 const SPEC = {
   staffed:{label:"Staffed", req:["id","code","duration"],
-    cols:{id:["id","teleoptiid"], code:["code"], duration:["duration"]}},
+    cols:{id:["id","agentid","teleoptiid","employeeid"],
+          code:["code","activity","activityname","scheduledactivity"],
+          duration:["duration","scheduledtime","scheduledhours","hours","time"]}},
   comp:   {label:"Comp", req:["id","time"],
-    cols:{id:["id","teleoptiid"], time:["codetime","time","duration"]}},
+    cols:{id:["id","agentid","teleoptiid"], time:["codetime","time","duration"]}},
   q:      {label:"Q", req:["login","count","ctc","ctb","nc"],
     cols:{login:["extension","loginid"], count:["countofmonitoredsheets"],
           ctc:["sumofclearctcagent"], ctb:["sumofclearctbagent"], nc:["sumofnc"]}},
   audit:  {label:"Audit", req:["un","score"],
-    cols:{un:["un","username"], score:["score","auditscore","audit","total","result","finalscore","percentage"]}},
-  ir:     {label:"IR OTC", req:["by","points"],
-    cols:{by:["addedby"], points:["pointstotal"], floor:["validationcoor"],
-          status:["trial"], action:["caseaction"]}},
+    cols:{un:["un","username","rowlabels"], score:["score","auditscore","finalscore","percentage","accuracy","result"]},
+    fuzzy:{score:["score","accuracy"]}},
+  ir:     {label:"IR OTC", req:["by"], any:[["status","action"]],
+    cols:{by:["addedby"], status:["trial"], action:["caseaction"], ticket:["ticketstatus"],
+          points:["pointstotal"], floor:["validationcoor"]}},
   str:    {label:"Str", req:["id","name","tl"],
-    cols:{id:["teleoptiid","id"], name:["name","agentname"], tl:["tl","teamleader"],
-          un:["un"], login:["loginid"], perm:["permid"]}}
+    cols:{id:["teleoptiid","id","agentid","teleopti"], name:["name","agentname","fullname","employeename"],
+          tl:["tl","teamleader","tlname"], un:["un","username"], login:["loginid","login"], perm:["permid"],
+          group:["group","profile","department","departmentname","lob","project"]}}
 };
 
 /* ============================================================
@@ -191,12 +237,15 @@ const DATA = {};                 // key -> [{name, aoa}]
 const DIAG = {};                 // key -> diagnostics
 const ADJ  = {};                 // agent id -> {complaint, penalty, bonus}
 const RESULT = {agents:[], warns:[]};
-const STATE  = {collapsed:{sched:true, reach:true, qual:true, abs:true, audit:true}, search:""};
+const STATE  = {collapsed:{sched:true, reach:true, qual:true, abs:true, audit:true},
+                search:"", group:"", tl:"", closedTL:{}};
 
 const $ = id => document.getElementById(id);
 const clean = v => (v === undefined || v === null) ? "" : String(v).trim();
 const norm  = s => clean(s).toLowerCase().replace(/[^a-z0-9]/g, "");
 const idKey = v => typeof v === "number" ? (Number.isFinite(v) ? String(v) : "") : clean(v).replace(/\.0+$/, "");
+// ID that may come as "156958 Hesham Nabil" (raw report) or as a plain number
+const idFrom = v => { const m = typeof v === "string" && v.match(/^\s*(\d{4,7})(?![\d:])/); return m ? m[1] : idKey(v); };
 const num   = v => {
   if (typeof v === "number") return v;
   const s = clean(v).replace(/,/g, "");
@@ -205,6 +254,7 @@ const num   = v => {
 };
 const adjOf = id => (ADJ[id] ??= {complaint:0, penalty:0, bonus:0});
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const isTime = v => (typeof v === "number" && v > 0 && v < 1) || /^\d+:\d{2}(:\d{2})?$/.test(clean(v));
 
 function log(msg, err){ const el = $("log"); el.textContent = msg; el.classList.toggle("err", !!err); }
 
@@ -235,6 +285,8 @@ function readFile(file){
 
 /* Find the header row (any sheet, first 80 rows) that matches the spec best. */
 function findTable(sheets, spec){
+  const any = spec.any || [];
+  const need = spec.req.length + any.length;
   let best = null;
   for (const sh of sheets){
     const lim = Math.min(sh.aoa.length, 80);
@@ -246,8 +298,12 @@ function findTable(sheets, spec){
           const ix = hdr.indexOf(al);
           if (ix >= 0){ map[key] = ix; break; }
         }
+        if (!(key in map) && spec.fuzzy && spec.fuzzy[key]){
+          const ix = hdr.findIndex(h => h && spec.fuzzy[key].some(w => h.includes(w)));
+          if (ix >= 0) map[key] = ix;
+        }
       }
-      const hits = spec.req.filter(k => k in map).length;
+      const hits = spec.req.filter(k => k in map).length + any.filter(g => g.some(k => k in map)).length;
       const total = Object.keys(map).length;
       if (!best || hits > best.hits || (hits === best.hits && total > best.total)){
         best = {sheet:sh, headerRow:i, map, hits, total};
@@ -255,35 +311,53 @@ function findTable(sheets, spec){
     }
   }
   if (!best) return null;
-  best.complete = best.hits === spec.req.length;
+  best.complete = best.hits === need;
+  best.missing = spec.req.filter(k => !(k in best.map)).concat(any.filter(g => !g.some(k => k in best.map)).map(g => g.join("/")));
   best.rows = best.sheet.aoa.slice(best.headerRow + 1);
   best.headers = best.sheet.aoa[best.headerRow];
   return best;
 }
 
-/* Fallback for the raw WFM report (the one the old VBA macro cleaned):
-   an ID row ("156958 Name"), a date row, then detail rows (code text + duration). */
+/* Raw WFM report (what the old VBA macro cleaned): an ID row ("156958 Name"), then detail
+   rows holding a code (Phone, Absent...) and a duration. Tolerant of column positions. */
 function parseRawStaffed(sheets){
-  let best = {rows:[], sheet:""};
+  const interesting = new Set([].concat(CODES.pure, CODES.absent, CODES.sick, CODES.emerg).map(norm));
+  let best = {rows:[], sheet:"", seen:{}};
   for (const sh of sheets){
-    const rows = []; let cur = "";
+    const rows = [], seen = {}; let cur = "";
     for (const r of sh.aoa){
-      const m = clean(r[1]).match(/^(\d{4,7})\b/);
-      if (m){ cur = m[1]; continue; }
-      const c = r[2];
-      if (typeof c === "number") continue;                      // date row
-      const code = clean(c);
-      if (!code || !cur) continue;
-      let dur = 0;
-      for (let k = 3; k < r.length; k++){
-        const v = r[k];
-        if ((typeof v === "number" && v >= 0 && v <= 3) || /^\d+:\d{2}(:\d{2})?$/.test(clean(v))){ dur = parseDur(v); break; }
+      let ci = -1;
+      for (let k = 0; k < r.length; k++){
+        if (typeof r[k] === "string" && interesting.has(norm(r[k]))){ ci = k; break; }
       }
-      rows.push({id:cur, code, dur});
+      if (ci < 0){
+        for (let k = 0; k < Math.min(r.length, 4); k++){
+          const m = typeof r[k] === "string" && r[k].match(/^\s*(\d{4,7})(?![\d:])/);
+          if (m){ cur = m[1]; break; }
+        }
+        continue;
+      }
+      if (!cur) continue;
+      let dur = 0, found = false;
+      for (let k = ci + 1; k < r.length && !found; k++) if (isTime(r[k])){ dur = parseDur(r[k]); found = true; }
+      for (let k = 0; k < ci && !found; k++) if (isTime(r[k])){ dur = parseDur(r[k]); found = true; }
+      rows.push({id:cur, code:clean(r[ci]), dur});
+      seen[clean(r[ci])] = (seen[clean(r[ci])] || 0) + 1;
     }
-    if (rows.length > best.rows.length) best = {rows, sheet:sh.name};
+    if (rows.length > best.rows.length) best = {rows, sheet:sh.name, seen};
   }
   return best;
+}
+
+function preview(sheets, sheetName){
+  const sh = sheets.find(s => s.name === sheetName) || sheets[0];
+  if (!sh) return "";
+  const rows = sh.aoa.filter(r => r.some(c => clean(c) !== "")).slice(0, 6);
+  return `<table class="pv">` + rows.map(r =>
+    "<tr>" + r.slice(0, 8).map(c => `<td title="${esc(clean(c))}">${esc(clean(c))}</td>`).join("") + "</tr>").join("") + "</table>";
+}
+function topSeen(o){
+  return Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k, n]) => `<code>${esc(k)}</code>×${n}`).join(" ");
 }
 
 /* ============================================================
@@ -295,7 +369,8 @@ async function loadAll(){
   for (const k in FILE_IDS){
     const f = $(FILE_IDS[k]).files[0];
     DATA[k] = f ? await readFile(f) : null;
-    DIAG[k] = {label:SPEC[k].label, file:f ? f.name : null};
+    DIAG[k] = {label:SPEC[k].label, file:f ? f.name : null,
+               sheets:DATA[k] ? DATA[k].map(s => s.name) : []};
   }
 }
 
@@ -305,51 +380,54 @@ async function loadAll(){
 function compute(){
   const W = [];
   const agents = new Map();
-  const mk = id => ({id, name:"", tl:"", un:"", login:"", staffed:false,
+  const mk = id => ({id, name:"", tl:"", un:"", login:"", group:"", staffed:false,
                      pure:0, absent:0, sick:0, emerg:0, comp:0,
-                     points:0, reached:0, trials:0,
                      monitored:0, ctc:0, ctb:0, nc:0});
   const get = id => { let a = agents.get(id); if (!a){ a = mk(id); agents.set(id, a); } return a; };
 
-  /* ---- Str: agent universe, name, TL, UN, Login ID ---- */
+  /* ---- Str: the agents list (ID, name, TL, UN, Login ID, Group) ---- */
+  let strOk = false;
   if (DATA.str){
-    let t = findTable(DATA.str, SPEC.str);
-    const d = DIAG.str;
-    let rows, map;
+    const t = findTable(DATA.str, SPEC.str), d = DIAG.str;
     if (t && t.complete){
-      rows = t.rows; map = t.map;
-      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:rows.length});
+      strOk = true;
+      let n = 0;
+      for (const r of t.rows){
+        const id = idKey(r[t.map.id]);
+        if (!id || ["id", "teleoptiid"].includes(norm(id))) continue;
+        const a = get(id);
+        a.name = clean(r[t.map.name]);
+        a.tl   = clean(r[t.map.tl]);
+        if (t.map.un    !== undefined) a.un    = clean(r[t.map.un]);
+        if (t.map.login !== undefined) a.login = idKey(r[t.map.login]);
+        if (t.map.group !== undefined) a.group = clean(r[t.map.group]);
+        n++;
+      }
+      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n});
+      if (t.map.un === undefined)    W.push("Str has no UN column: IR and Audit cannot be matched to agents.");
+      if (t.map.login === undefined) W.push("Str has no Login ID column: Quality is matched by agent ID instead.");
+      if (t.map.group === undefined) W.push("Str has no Group column: cannot limit to OTC, showing everyone.");
     } else {
-      // positional fallback: A = ID, C = Name, E = TL (same as the old VLOOKUP columns)
-      const sh = DATA.str[0];
-      rows = sh.aoa.slice(1); map = {id:0, name:2, tl:4};
-      Object.assign(d, {ok:false, positional:true, sheet:sh.name, headerRow:1, map, headers:sh.aoa[0], rows:rows.length,
-                        missing:t ? SPEC.str.req.filter(k => !(k in t.map)) : SPEC.str.req});
+      Object.assign(d, {ok:false, sheet:t ? t.sheet.name : "", headerRow:t ? t.headerRow+1 : 0,
+                        headers:t && t.headers, map:t && t.map, missing:t ? t.missing : SPEC.str.req});
+      W.push("Str: this file has no agent list (needs ID, Name and TL columns, one row per agent). It looks like a summary table. Agents are taken from Staffed only.");
     }
-    for (const r of rows){
-      const id = idKey(r[map.id]);
-      if (!id || norm(id) === "id" || norm(id) === "teleoptiid") continue;
-      const a = get(id);
-      a.name  = clean(r[map.name]);
-      a.tl    = clean(r[map.tl]);
-      if (map.un    !== undefined) a.un    = clean(r[map.un]);
-      if (map.login !== undefined) a.login = idKey(r[map.login]);
-    }
-    if (map.un === undefined)    W.push("Str has no UN column: IR and Audit cannot be matched to agents.");
-    if (map.login === undefined) W.push("Str has no Login ID column: Quality is matched by agent ID instead.");
   } else {
-    W.push("Str not uploaded: names/TL come from Staffed only, and IR / Audit cannot be matched (no UN).");
+    W.push("Str not uploaded: agents are taken from Staffed only, and IR / Audit cannot be matched (no UN).");
   }
 
   /* ---- Staffed: pure time + absence days ---- */
   const pureSet = CODES.pure.map(norm), absSet = CODES.absent.map(norm),
         sickSet = CODES.sick.map(norm), emSet = CODES.emerg.map(norm);
+  const seen = {};
   const addStaff = (id, code, hours, nameFallback, tlFallback) => {
+    if (strOk && !agents.has(id)) return;                 // only agents that exist in Str
     const a = get(id);
     a.staffed = true;
     if (!a.name && nameFallback) a.name = nameFallback;
     if (!a.tl && tlFallback) a.tl = tlFallback;
     const c = norm(code);
+    seen[clean(code)] = (seen[clean(code)] || 0) + 1;
     if (pureSet.includes(c)) a.pure += hours;
     if (absSet.includes(c))  a.absent++;
     if (sickSet.includes(c)) a.sick++;
@@ -358,25 +436,26 @@ function compute(){
   if (DATA.staffed){
     const d = DIAG.staffed;
     const t = findTable(DATA.staffed, SPEC.staffed);
+    let n = 0;
     if (t && t.complete){
-      const nameIx = t.headers.map(norm).findIndex(h => h === "agentname");
-      const tlIx   = t.headers.map(norm).findIndex(h => h === "tl");
-      let n = 0;
+      const hdr = t.headers.map(norm);
+      const nameIx = hdr.indexOf("agentname"), tlIx = hdr.indexOf("tl");
       for (const r of t.rows){
-        const id = idKey(r[t.map.id]);
+        const id = idFrom(r[t.map.id]);
         if (!id || norm(id) === "id") continue;
         addStaff(id, r[t.map.code], parseDur(r[t.map.duration]),
                  nameIx >= 0 ? clean(r[nameIx]) : "", tlIx >= 0 ? clean(r[tlIx]) : "");
         n++;
       }
-      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n});
-    } else {
+      Object.assign(d, {ok:n > 0, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n, seen});
+    }
+    if (!(t && t.complete) || n === 0){
       const raw = parseRawStaffed(DATA.staffed);
       for (const r of raw.rows) addStaff(r.id, r.code, r.dur, "", "");
-      Object.assign(d, {ok:raw.rows.length > 0, raw:true, sheet:raw.sheet, rows:raw.rows.length,
-                        missing:t ? SPEC.staffed.req.filter(k => !(k in t.map)) : SPEC.staffed.req});
-      if (raw.rows.length) W.push("Staffed was read as the RAW report (layout guessed). Check Pure hours against Excel for one agent.");
-      else W.push("Staffed: could not find ID / Code / Duration columns and the raw layout did not match either.");
+      Object.assign(d, {ok:raw.rows.length > 0, raw:true, sheet:raw.sheet || (t && t.sheet.name), rows:raw.rows.length,
+                        missing:t && !t.complete ? t.missing : [], seen});
+      if (raw.rows.length) W.push("Staffed was read as the RAW report (layout guessed). Check Pure hours for one agent against Excel.");
+      else W.push("Staffed: no ID / Code / Duration columns and none of the codes (Phone, Absent...) were found in any row.");
     }
   } else W.push("Staffed not uploaded: nobody will count as Active.");
 
@@ -386,15 +465,14 @@ function compute(){
     if (t && t.complete){
       let n = 0;
       for (const r of t.rows){
-        const id = idKey(r[t.map.id]);
+        const id = idFrom(r[t.map.id]);
         if (!id || norm(id) === "id") continue;
-        if (agents.has(id)){ agents.get(id).comp += parseDur(r[t.map.time]); }
+        if (agents.has(id)) agents.get(id).comp += parseDur(r[t.map.time]);
         n++;
       }
       Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n});
     } else {
-      Object.assign(d, {ok:false, missing:t ? SPEC.comp.req.filter(k => !(k in t.map)) : SPEC.comp.req,
-                        sheet:t && t.sheet.name, headers:t && t.headers});
+      Object.assign(d, {ok:false, missing:t ? t.missing : SPEC.comp.req, sheet:t && t.sheet.name, headers:t && t.headers});
       W.push("Comp: columns not recognised (need ID and Code Time).");
     }
   }
@@ -404,27 +482,35 @@ function compute(){
   if (DATA.ir){
     const t = findTable(DATA.ir, SPEC.ir), d = DIAG.ir;
     if (t && t.complete){
-      const stIx = t.map.status !== undefined ? t.map.status : t.map.action;
-      let n = 0;
+      const m = t.map, stIx = m.status !== undefined ? m.status : m.action;
+      let n = 0, other = 0;
       for (const r of t.rows){
-        const un = clean(r[t.map.by]).toLowerCase();
-        if (!un) continue;
+        const un = clean(r[m.by]).toLowerCase();
+        if (!un || un === "added_by") continue;
         let o = irMap.get(un);
         if (!o){ o = {points:0, reached:0, rows:0, noCall:0}; irMap.set(un, o); }
         const st = norm(r[stIx]);
         o.rows++;
         if (st === "reached") o.reached++;
-        if (st === "nocall")  o.noCall++;
-        const isFloor = t.map.floor === undefined ? true : norm(r[t.map.floor]) === "floor";
-        if (isFloor) o.points += num(r[t.map.points]) || 0;
+        else if (st === "nocall") o.noCall++;
+        else other++;
+        const isFloor = m.floor === undefined ? true : norm(r[m.floor]) === "floor";
+        if (isFloor){
+          let p;
+          if (m.points !== undefined) p = num(r[m.points]) || 0;
+          else if (st === "reached") p = (m.ticket !== undefined && norm(r[m.ticket]) === "new") ? IR_POINTS.reachedNew : IR_POINTS.reached;
+          else p = IR_POINTS.other;
+          o.points += p;
+        }
         n++;
       }
-      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n});
-      if (t.map.floor === undefined) W.push("IR has no 'Validation Coor' column: all rows counted as Floor.");
+      Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:m, headers:t.headers, rows:n, users:irMap.size});
+      if (m.points === undefined) W.push(`IR has no "Points total" column: points computed as No call ${IR_POINTS.other}, Reached ${IR_POINTS.reached}, Reached on New ticket ${IR_POINTS.reachedNew} (inferred from your sample rows, please confirm).`);
+      if (m.floor === undefined)  W.push(`IR has no "Validation Coor" column: every row counted as Floor.`);
+      if (other)                  W.push(`IR: ${other} rows have a status other than Reached / No call; they count as trials and get ${IR_POINTS.other} points.`);
     } else {
-      Object.assign(d, {ok:false, missing:t ? SPEC.ir.req.filter(k => !(k in t.map)) : SPEC.ir.req,
-                        sheet:t && t.sheet.name, headers:t && t.headers});
-      W.push("IR: columns not recognised (need added_by and Points total).");
+      Object.assign(d, {ok:false, missing:t ? t.missing : SPEC.ir.req, sheet:t && t.sheet.name, headers:t && t.headers});
+      W.push("IR: columns not recognised (need added_by and Trial or case_action).");
     }
   }
 
@@ -449,8 +535,7 @@ function compute(){
       }
       Object.assign(d, {ok:true, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n, matched:hit});
     } else {
-      Object.assign(d, {ok:false, missing:t ? SPEC.q.req.filter(k => !(k in t.map)) : SPEC.q.req,
-                        sheet:t && t.sheet.name, headers:t && t.headers});
+      Object.assign(d, {ok:false, missing:t ? t.missing : SPEC.q.req, sheet:t && t.sheet.name, headers:t && t.headers});
       W.push("Q: columns not recognised.");
     }
   }
@@ -459,26 +544,29 @@ function compute(){
   const auditMap = new Map();
   if (DATA.audit){
     const t = findTable(DATA.audit, SPEC.audit), d = DIAG.audit;
-    let rows, map, ok = true;
-    if (t && t.complete){ rows = t.rows; map = t.map; }
-    else { const sh = DATA.audit[0]; rows = sh.aoa.slice(1); map = {un:0, score:1}; ok = false; }   // Audit!A:B
-    let n = 0;
-    for (const r of rows){
-      const un = clean(r[map.un]).toLowerCase();
-      let s = num(r[map.score]);
-      if (!un || isNaN(s)) continue;
-      if (s > 1) s = s / 100;
-      auditMap.set(un, s); n++;
+    if (t && t.complete){
+      let n = 0;
+      for (const r of t.rows){
+        const un = clean(r[t.map.un]).toLowerCase();
+        let s = num(r[t.map.score]);
+        if (!un || isNaN(s)) continue;
+        if (s > 1) s = s / 100;
+        auditMap.set(un, s); n++;
+      }
+      Object.assign(d, {ok:n > 0, sheet:t.sheet.name, headerRow:t.headerRow+1, map:t.map, headers:t.headers, rows:n});
+    } else {
+      Object.assign(d, {ok:false, sheet:t && t.sheet.name, headers:t && t.headers, map:t && t.map,
+                        missing:t ? t.missing : SPEC.audit.req});
+      W.push("Audit: no UN + Score columns found, so every agent stays Pending. Column B of the file I received is not a percentage score I can use (see the preview in File check).");
     }
-    Object.assign(d, {ok, positional:!ok, sheet:t ? t.sheet.name : DATA.audit[0].name, headerRow:t ? t.headerRow+1 : 1,
-                      map, headers:t ? t.headers : DATA.audit[0].aoa[0], rows:n,
-                      missing:ok ? [] : (t ? SPEC.audit.req.filter(k => !(k in t.map)) : SPEC.audit.req)});
   }
 
   /* ---- score every agent ---- */
+  const unSet = new Set();
   const out = [];
   for (const a of agents.values()){
-    const r = {id:a.id, name:a.name, tl:a.tl, un:a.un};
+    const r = {id:a.id, name:a.name, tl:a.tl || "Unassigned", un:a.un, group:a.group};
+    if (a.un) unSet.add(a.un.toLowerCase());
     r.status = a.staffed ? "Active" : "Unpaid";
     r.pure = Math.max(0, a.pure - a.comp);
     r.comp = a.comp;
@@ -513,6 +601,14 @@ function compute(){
     r.total = r.prodW + r.reachW + r.qualW + r.auditW + r.absW;      // Pending audit counts as 0, like SUM() in Excel
     out.push(r);
   }
+  if (DIAG.ir && DIAG.ir.ok){
+    DIAG.ir.matched = [...irMap.keys()].filter(u => unSet.has(u)).length;
+    if (unSet.size && DIAG.ir.matched === 0) W.push("IR: none of the added_by users match a UN in Str. Compare the two formats (example IR user: " + [...irMap.keys()][0] + ").");
+  }
+  if (DIAG.audit && DIAG.audit.ok){
+    DIAG.audit.matched = [...auditMap.keys()].filter(u => unSet.has(u)).length;
+    if (unSet.size && DIAG.audit.matched === 0) W.push("Audit: none of the UN values match Str.");
+  }
   out.forEach(applyAdj);
   RESULT.warns = W;
   return out;
@@ -522,6 +618,35 @@ function applyAdj(r){
   const a = adjOf(r.id);
   r.complaint = a.complaint; r.penalty = a.penalty; r.bonus = a.bonus;
   r.final = r.total + (a.penalty + a.bonus) / 100;
+}
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+const scope = () => RESULT.agents.filter(r => !STATE.group || r.group === STATE.group);
+
+function populateFilters(){
+  const groups = [...new Set(RESULT.agents.map(r => r.group).filter(Boolean))].sort();
+  const gs = $("selGroup");
+  gs.innerHTML = `<option value="">All groups</option>` + groups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join("");
+  gs.style.display = $("lblGroup").style.display = groups.length ? "" : "none";
+  STATE.group = groups.find(g => norm(g) === "otc") || "";       // OTC only by default
+  gs.value = STATE.group;
+  STATE.tl = "";
+  refreshTLSelect();
+}
+function refreshTLSelect(){
+  const tls = [...new Set(scope().map(r => r.tl))].sort((a, b) => a.localeCompare(b));
+  $("selTL").innerHTML = `<option value="">All team leaders</option>` + tls.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join("");
+  $("selTL").value = STATE.tl;
+}
+function setGroup(v){ STATE.group = v; STATE.tl = ""; refreshTLSelect(); renderAll(); }
+function setTL(v){ STATE.tl = v; renderTable(); }
+function setSearch(v){ STATE.search = v.toLowerCase(); renderTable(); }
+function openAllTL(open){
+  STATE.closedTL = {};
+  if (!open) for (const r of scope()) STATE.closedTL[r.tl] = true;
+  renderTable();
 }
 
 /* ============================================================
@@ -550,9 +675,7 @@ const GROUPS = [
     ["bonus","Bonus %",null,false,"g"], ["final","Final KPIs %",P,true]]}
 ];
 
-function setSearch(v){ STATE.search = v.toLowerCase(); renderTable(); }
 function toggleGroup(id){ STATE.collapsed[id] = !STATE.collapsed[id]; renderTable(); }
-
 function shownCols(g){
   return (STATE.collapsed[g.id] && !g.fixed) ? g.cols.filter(c => c[0] === g.keep) : g.cols;
 }
@@ -573,38 +696,66 @@ function renderTable(){
   document.documentElement.style.setProperty("--h1", thead.rows[0].offsetHeight + "px");
 
   const q = STATE.search;
-  const rows = RESULT.agents.filter(r => !q || `${r.id} ${r.un} ${r.name} ${r.tl}`.toLowerCase().includes(q));
-  tbody.innerHTML = rows.map(r => {
-    const on = r.status === "Active";
-    let tds = `<td>${esc(r.id)}</td><td class="l">${esc(r.un)}</td><td class="l">${esc(r.name)}</td><td class="l">${esc(r.tl)}</td>`;
-    for (const g of GROUPS){
-      for (const c of shownCols(g)){
+  const rows = scope().filter(r =>
+    (!STATE.tl || r.tl === STATE.tl) &&
+    (!q || `${r.id} ${r.un} ${r.name} ${r.tl}`.toLowerCase().includes(q)));
+
+  const byTL = new Map();
+  for (const r of rows){ if (!byTL.has(r.tl)) byTL.set(r.tl, []); byTL.get(r.tl).push(r); }
+  const tls = [...byTL.keys()].sort((a, b) => a.localeCompare(b));
+  const allCols = GROUPS.flatMap(g => shownCols(g));
+
+  let html = "";
+  for (const tl of tls){
+    const list = byTL.get(tl).sort((a, b) => a.name.localeCompare(b.name));
+    const act = list.filter(r => r.status === "Active");
+    const open = !STATE.closedTL[tl];
+    const avg = k => act.length ? act.reduce((s, r) => s + r[k], 0) / act.length : null;
+    html += `<tr class="tlrow" data-tl="${esc(tl)}"><td colspan="4" class="l">${open ? "▾" : "▸"} ${esc(tl)}<small>${list.length} agents · ${act.length} active</small></td>`;
+    for (const c of allCols){
+      const [k, , f, isW] = c;
+      const show = (isW || k === "total" || k === "final") && !c[4];
+      const v = show ? avg(k) : null;
+      html += `<td>${v === null ? "" : `<b>${f(v)}</b>`}</td>`;
+    }
+    html += "</tr>";
+    if (!open) continue;
+    for (const r of list){
+      const on = r.status === "Active";
+      let tds = `<td>${esc(r.id)}</td><td class="l">${esc(r.un)}</td><td class="l">${esc(r.name)}</td><td class="l">${esc(r.tl)}</td>`;
+      for (const c of allCols){
         const [k, , f, isW, inpCls] = c;
         if (inpCls){
-          tds += `<td><input type="number" step="0.5" class="inp ${inpCls}" value="${r[k]}" onchange="setAdj('${esc(r.id)}','${k}',this.value)"></td>`;
+          tds += `<td><input type="number" step="0.5" class="inp ${inpCls}" value="${r[k]}" data-id="${esc(r.id)}" onchange="setAdj(this.dataset.id,'${k}',this.value)"></td>`;
         } else if (!on && (isW || k === "total" || k === "final")){
           tds += `<td>${r.status}</td>`;
         } else if (k === "final" || k === "total"){
-          tds += `<td data-k="${k}-${esc(r.id)}"><b>${f(r[k])}</b></td>`;
+          tds += `<td><b>${f(r[k])}</b></td>`;
         } else {
           tds += `<td>${f(r[k])}</td>`;
         }
       }
+      html += `<tr class="ag ${!on ? "off" : (r.final < 0.5 ? "bad" : "")}">${tds}</tr>`;
     }
-    const cls = !on ? "off" : (r.final < 0.5 ? "bad" : "");
-    return `<tr class="${cls}">${tds}</tr>`;
-  }).join("");
-  $("count").textContent = `Showing ${rows.length} of ${RESULT.agents.length}`;
+  }
+  tbody.innerHTML = html;
+  $("count").textContent = `${rows.length} agents under ${tls.length} team leaders`;
 }
+
+$("tbl").querySelector("tbody").addEventListener("click", e => {
+  const tr = e.target.closest("tr.tlrow");
+  if (!tr || e.target.closest("input")) return;
+  const tl = tr.dataset.tl;
+  STATE.closedTL[tl] = !STATE.closedTL[tl];
+  renderTable();
+});
 
 function setAdj(id, k, val){
   adjOf(id)[k] = Number(val) || 0;
   const r = RESULT.agents.find(x => x.id === id);
   if (!r) return;
   applyAdj(r);
-  const cell = document.querySelector(`[data-k="final-${CSS.escape(id)}"]`) || [...document.querySelectorAll("td[data-k]")].find(td => td.dataset.k === "final-" + id);
-  if (cell) cell.innerHTML = `<b>${P(r.final)}</b>`;
-  renderCards(); renderTL();
+  renderAll();
 }
 
 function setCard(id, val, fill, sub){
@@ -614,7 +765,7 @@ function setCard(id, val, fill, sub){
 }
 
 function renderCards(){
-  const all = RESULT.agents, act = all.filter(r => r.status === "Active"), n = act.length;
+  const all = scope(), act = all.filter(r => r.status === "Active"), n = act.length;
   if (!all.length){
     ["agents","pure","abs","qual","aud","final"].forEach(k => setCard(k, k === "qual" || k === "final" ? "0%" : "0", 0, "—"));
     return;
@@ -622,7 +773,8 @@ function renderCards(){
   const sum = f => act.reduce((s, r) => s + f(r), 0);
   const avg = f => n ? sum(f) / n : 0;
   const aud = act.filter(r => r.audit !== null).length;
-  setCard("agents", n, all.length ? n / all.length * 100 : 0, `${all.length - n} unpaid / not staffed`);
+  const label = STATE.group ? STATE.group + ": " : "";
+  setCard("agents", n, all.length ? n / all.length * 100 : 0, `${label}${all.length - n} unpaid / not staffed`);
   setCard("pure", sum(r => r.pure).toFixed(1) + " h", 100, "Net of compensation");
   setCard("abs", sum(r => r.days), Math.min(100, sum(r => r.days)), "Absent + Sick + Emergency");
   setCard("qual", P(avg(r => r.qualW)), avg(r => r.qualW) * 1000, "Average Quality (10%) weight");
@@ -632,16 +784,24 @@ function renderCards(){
 
 function renderTL(){
   const map = {};
-  for (const r of RESULT.agents) if (r.status === "Active") (map[r.tl || "Unassigned"] ??= []).push(r.final);
+  for (const r of scope()) if (r.status === "Active") (map[r.tl] ??= []).push(r.final);
   const rows = Object.entries(map).map(([tl, a]) => ({tl, n:a.length, avg:a.reduce((x, y) => x + y, 0) / a.length}))
                                   .sort((a, b) => b.avg - a.avg);
   $("tl").innerHTML = rows.length ? rows.map(x => `
-    <div class="tl-row">
+    <div class="tl-row" data-tl="${esc(x.tl)}">
       <b title="${esc(x.tl)}">${esc(x.tl)} <span style="color:var(--muted);font-weight:400">(${x.n})</span></b>
       <div class="bar"><i style="width:${Math.max(0, Math.min(100, x.avg * 100))}%"></i></div>
       <em>${P(x.avg)}</em>
     </div>`).join("") : "<div class='foot'>No active agents.</div>";
 }
+$("tl").addEventListener("click", e => {
+  const row = e.target.closest(".tl-row");
+  if (!row) return;
+  STATE.tl = row.dataset.tl; $("selTL").value = STATE.tl; renderTable();
+  $("tbl").scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+function renderAll(){ renderCards(); renderTL(); renderTable(); }
 
 function renderDiag(){
   const box = $("diagBox"); box.style.display = "";
@@ -651,19 +811,19 @@ function renderDiag(){
     if (!d.file){ html += `<div class="item bad"><b>${d.label}</b><br>Not uploaded.</div>`; continue; }
     const bad = !d.ok;
     let body = `<b>${d.label}</b> — ${esc(d.file)}<br>`;
+    if (d.sheets && d.sheets.length > 1) body += `Sheets in file: ${d.sheets.map(s => `<code>${esc(s)}</code>`).join(" ")}<br>`;
     if (d.sheet) body += `Sheet <code>${esc(d.sheet)}</code>`;
     if (d.headerRow) body += `, header row <code>${d.headerRow}</code>`;
     if (d.rows !== undefined) body += `, rows read <code>${d.rows}</code>`;
     if (d.matched !== undefined) body += `, matched to agents <code>${d.matched}</code>`;
+    if (d.users !== undefined) body += `, distinct users <code>${d.users}</code>`;
     if (d.raw) body += `<br><span class="warn">Read as raw report (guessed layout)</span>`;
-    if (d.positional) body += `<br><span class="warn">Headers not recognised: used column positions</span>`;
     if (d.map && d.headers){
       body += "<br>" + Object.entries(d.map).map(([key, ix]) => `${key} ← <code>${esc(clean(d.headers[ix]))}</code>`).join(" · ");
     }
     if (d.missing && d.missing.length) body += `<br><span class="warn">Missing: ${d.missing.join(", ")}</span>`;
-    if (!d.ok && d.headers && !d.map){
-      body += `<br>Headers seen: ${d.headers.slice(0, 12).map(h => `<code>${esc(clean(h))}</code>`).join(" ")}`;
-    }
+    if (d.seen && Object.keys(d.seen).length) body += `<br>Codes seen: ${topSeen(d.seen)}`;
+    if (bad && DATA[k]) body += `<br>First rows of the file:` + preview(DATA[k], d.sheet);
     html += `<div class="item ${bad ? "bad" : ""}">${body}</div>`;
   }
   for (const w of RESULT.warns) html += `<div class="item bad"><span class="warn">${esc(w)}</span></div>`;
@@ -676,13 +836,19 @@ function renderDiag(){
 async function runAll(){
   try{
     log("Reading files...");
+    if (!(await window.XLSX_READY)){
+      log("The Excel reader could not be loaded (no internet or blocked). Download xlsx.full.min.js from https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js and put it next to index.html.", true);
+      return;
+    }
     await loadAll();
     if (!DATA.staffed && !DATA.str){ log("Upload at least Staffed and Str, then press Run.", true); return; }
     RESULT.agents = compute();
-    renderDiag(); renderTable(); renderCards(); renderTL();
-    const act = RESULT.agents.filter(r => r.status === "Active").length;
-    if (!RESULT.agents.length) log("No agents found. Open 'File check' below to see how each file was read.", true);
-    else log(`Done: ${RESULT.agents.length} agents (${act} active).`);
+    renderDiag();
+    populateFilters();
+    renderAll();
+    const sc = scope(), act = sc.filter(r => r.status === "Active").length;
+    if (!RESULT.agents.length) log("No agents found. Open 'File check' to see how each file was read.", true);
+    else log(`Done: ${sc.length} agents${STATE.group ? " in " + STATE.group : ""} (${act} active).`);
   }catch(e){ log("Error: " + e.message, true); console.error(e); }
 }
 
@@ -692,7 +858,10 @@ function resetAll(){
   for (const k in ADJ) delete ADJ[k];
   RESULT.agents = []; RESULT.warns = [];
   STATE.collapsed = {sched:true, reach:true, qual:true, abs:true, audit:true};
-  STATE.search = ""; $("q").value = "";
+  STATE.search = ""; STATE.group = ""; STATE.tl = ""; STATE.closedTL = {};
+  $("q").value = "";
+  $("selGroup").style.display = $("lblGroup").style.display = "none";
+  $("selTL").innerHTML = `<option value="">All team leaders</option>`;
   $("diagBox").style.display = "none"; $("diag").innerHTML = "";
   $("tl").innerHTML = "";
   renderTable(); renderCards();
@@ -700,9 +869,11 @@ function resetAll(){
 }
 
 function exportXLSX(){
-  if (!RESULT.agents.length){ log("Run first, then export.", true); return; }
-  const rows = RESULT.agents.map(r => ({
-    "ID":r.id, "UN":r.un, "Name":r.name, "TL":r.tl, "Status":r.status,
+  const rowsIn = scope();
+  if (!rowsIn.length){ log("Run first, then export.", true); return; }
+  const sorted = rowsIn.slice().sort((a, b) => a.tl.localeCompare(b.tl) || a.name.localeCompare(b.name));
+  const rows = sorted.map(r => ({
+    "ID":r.id, "UN":r.un, "Name":r.name, "TL":r.tl, "Group":r.group, "Status":r.status,
     "Pure Time (h)":+r.pure.toFixed(2), "Comp (h)":+r.comp.toFixed(2), "Total Points":+r.points.toFixed(1), "Points/Hr":+r.pph.toFixed(2),
     "Productivity (30%)":r.prodW, "Reached":r.reached, "Trials":r.trials, "Reachability":+r.reach.toFixed(4), "Reachability (20%)":r.reachW,
     "Monitored":r.monitored, "Fail CTC":r.failCtc, "Fail CTB":r.failCtb, "NC Errors":r.nc, "Quality (10%)":+r.qualW.toFixed(4),
@@ -714,7 +885,7 @@ function exportXLSX(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Final KPI");
   XLSX.writeFile(wb, "KPI_Delay_Final.xlsx");
-  log("Exported KPI_Delay_Final.xlsx");
+  log(`Exported ${rows.length} agents to KPI_Delay_Final.xlsx`);
 }
 
 renderCards();
